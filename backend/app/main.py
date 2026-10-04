@@ -79,6 +79,26 @@ async def upload_pdf(file: UploadFile = File(...)):
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
+def parse_answer_and_sources(raw_answer: str):
+    import re
+    if "don't know" in raw_answer.lower() or "could not find" in raw_answer.lower():
+        return raw_answer, []
+        
+    pages_used = []
+    clean_answer = raw_answer
+    
+    match = re.search(r'SOURCES:\s*\[(.*?)\]', raw_answer)
+    if match:
+        digits = re.findall(r'\d+', match.group(1))
+        pages_used = sorted(list(set([int(d) for d in digits])))
+    
+    clean_answer = re.sub(r'SOURCES:\s*\[.*?\]', '', raw_answer).strip()
+    clean_answer = re.sub(r'SOURCES:.*$', '', clean_answer, flags=re.MULTILINE).strip()
+    
+    # Fix the lost em dash and quotes replacement character
+    clean_answer = clean_answer.replace('\ufffd', '—')
+    return clean_answer, pages_used
+
 @app.post("/chat")
 def chat(req: ChatRequest):
     if req.doc_id not in document_store:
@@ -93,10 +113,11 @@ def chat(req: ChatRequest):
             return {"answer": "Could not find relevant information in the PDF.", "pages_used": []}
             
         llm = get_llm()
-        answer = generate_answer(llm, relevant_docs, req.question, req.purpose)
+        raw_answer = generate_answer(llm, relevant_docs, req.question, req.purpose)
         
-        pages_used = list(set([doc.metadata.get("page", 0) + 1 for doc in relevant_docs]))
-        return {"answer": answer, "pages_used": sorted(pages_used)}
+        clean_answer, pages_used = parse_answer_and_sources(raw_answer)
+        
+        return {"answer": clean_answer, "pages_used": pages_used}
     except Exception as e:
         if "connection" in str(e).lower() or "ollama" in str(e).lower():
             raise HTTPException(status_code=503, detail="The AI model service (Ollama) is currently unavailable. Please ensure it is running.")

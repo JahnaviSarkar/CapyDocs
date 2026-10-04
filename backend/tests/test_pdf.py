@@ -49,3 +49,28 @@ def test_purpose_field_prompts():
     generate_answer(mock_llm, docs, "What is this?", purpose="work")
     call_arg_work = mock_llm.invoke.call_args[0][0]
     assert "concise and professional explanation" in call_arg_work
+
+def test_parse_answer_and_sources():
+    from app.main import parse_answer_and_sources
+    
+    # Normal case
+    raw = "The answer is X.\n\nSOURCES: [12, 13]"
+    clean, pages = parse_answer_and_sources(raw)
+    assert clean == "The answer is X."
+    assert pages == [12, 13]
+    
+    # Missing sources bracket
+    raw2 = "The answer is Y.\nSOURCES: 5"
+    clean2, pages2 = parse_answer_and_sources(raw2)
+    assert clean2 == "The answer is Y."
+    assert pages2 == [] # Because it doesn't match the regex [..]
+    
+    # "don't know" case
+    raw3 = "I don't know the answer.\nSOURCES: [1]"
+    clean3, pages3 = parse_answer_and_sources(raw3)
+    assert pages3 == []
+    
+    # Fix em dash
+    raw4 = "She said, \ufffdHello!\ufffd \nSOURCES: [2]"
+    clean4, pages4 = parse_answer_and_sources(raw4)
+    assert clean4 == "She said, —Hello!—"
