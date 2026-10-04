@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Papr from './Papr';
+import CapyMascot from './CapyMascot';
+import BackgroundEffects from './BackgroundEffects';
 
 export default function Dashboard({ onStart }) {
   const [purpose, setPurpose] = useState('general');
@@ -74,16 +75,18 @@ export default function Dashboard({ onStart }) {
 
   return (
     <div 
-      className="flex flex-col md:flex-row min-h-screen items-center justify-center p-8 gap-12"
+      className="min-h-screen flex items-center justify-center p-4 md:p-8"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="flex-1 flex justify-center md:justify-end">
-        <Papr state={isUploading ? 'reading' : 'hello'} isDragging={isDragging} message="Hi!" />
-      </div>
-      
-      <div className="flex-1 flex flex-col gap-6 max-w-md bg-white p-8 rounded-3xl border-merlot-3 shadow-[8px_8px_0_#570301]">
+      <BackgroundEffects />
+      <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-5xl z-10">
+        <div className="flex-shrink-0 flex justify-center">
+          <CapyMascot status={isUploading ? 'typing' : isDragging ? 'peeking' : 'idle'} size={380} />
+        </div>
+        
+        <div className="flex-1 flex flex-col gap-6 w-full max-w-md bg-white p-8 rounded-3xl border-merlot-3 shadow-[8px_8px_0_#570301]">
         <h1 className="text-4xl font-bold">CapyDocs</h1>
         
         <div className="flex flex-col gap-2">
@@ -119,6 +122,7 @@ export default function Dashboard({ onStart }) {
         >
           {isUploading ? 'Uploading...' : "Let's start"}
         </button>
+      </div>
       </div>
     </div>
   );
