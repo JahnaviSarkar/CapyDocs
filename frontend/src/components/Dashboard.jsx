@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CapyMascot from './CapyMascot';
 import BackgroundEffects from './BackgroundEffects';
-import { UploadCloud, File as FileIcon, X, GraduationCap, Briefcase, BookOpen, Globe, PlayCircle } from 'lucide-react';
+import { UploadCloud, File as FileIcon, X, GraduationCap, Briefcase, BookOpen, Globe, PlayCircle, FileText } from 'lucide-react';
 
 const PURPOSE_OPTIONS = [
   { id: 'student', label: 'Student', icon: GraduationCap, desc: 'Simple explanations and study-friendly summaries' },
@@ -17,6 +17,14 @@ export default function Dashboard({ onStart }) {
   const [error, setError] = useState('');
 
   const [isDragging, setIsDragging] = useState(false);
+  const [healthStatus, setHealthStatus] = useState({ status: 'checking', model: null });
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/health')
+      .then(res => res.json())
+      .then(data => setHealthStatus({ status: 'up', model: data.model_name || data.model }))
+      .catch(() => setHealthStatus({ status: 'down', model: null }));
+  }, []);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -99,6 +107,16 @@ export default function Dashboard({ onStart }) {
       onDrop={handleDrop}
     >
       <BackgroundEffects />
+
+      {/* Status Pill */}
+      <div className="absolute top-4 right-4 md:right-8 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-merlot shadow-[2px_2px_0_#570301]">
+        <div className={`w-2.5 h-2.5 rounded-full ${healthStatus.status === 'up' ? 'bg-green-500' : 'bg-red-500'}`} />
+        <span className="text-xs font-bold text-merlot">
+          {healthStatus.status === 'up' 
+            ? `Papr is awake ${healthStatus.model ? `(${healthStatus.model})` : ''}` 
+            : "Papr is napping, start the server"}
+        </span>
+      </div>
 
       {/* Headline */}
       <div className="text-center z-10 mb-8 md:mb-12">
@@ -195,7 +213,47 @@ export default function Dashboard({ onStart }) {
         >
           {isUploading ? 'Uploading...' : !file ? 'Add a PDF to start' : "Let's start"}
         </button>
+
+        {/* Example Questions */}
+        <div className="mt-2 flex flex-col gap-2">
+          <span className="text-xs font-bold text-merlot/70 text-center uppercase tracking-wide">Try these after you upload:</span>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {["Summarize this", "Explain it simply", "What are the key dates?"].map(q => (
+              <span key={q} className="px-3 py-1 bg-highlight/30 border border-merlot/30 rounded-full text-xs font-semibold text-merlot/80">{q}</span>
+            ))}
+          </div>
+        </div>
       </div>
+      </div>
+
+      {/* Extra details below the main fold */}
+      <div className="w-full max-w-5xl mt-12 flex flex-col md:flex-row gap-6 justify-between items-center z-10">
+        
+        {/* How it works */}
+        <div className="flex items-center gap-4 bg-white/50 backdrop-blur-sm p-4 rounded-2xl border-2 border-merlot/20 shadow-sm">
+          <div className="flex flex-col items-center gap-1"><UploadCloud size={20} className="text-merlot"/><span className="text-xs font-bold text-merlot">Upload</span></div>
+          <div className="w-4 h-[2px] bg-merlot/30" />
+          <div className="flex flex-col items-center gap-1"><BookOpen size={20} className="text-merlot"/><span className="text-xs font-bold text-merlot">Papr reads</span></div>
+          <div className="w-4 h-[2px] bg-merlot/30" />
+          <div className="flex flex-col items-center gap-1"><FileText size={20} className="text-merlot"/><span className="text-xs font-bold text-merlot">Ask & cite</span></div>
+        </div>
+
+        {/* Badges */}
+        <div className="flex flex-wrap justify-center gap-3">
+          <span className="px-3 py-1.5 bg-[#BAD6FD] border border-merlot rounded-lg text-xs font-bold text-merlot">Cites page numbers</span>
+          <span className="px-3 py-1.5 bg-[#F5BAD5] border border-merlot rounded-lg text-xs font-bold text-merlot">PDF kept in memory, not saved</span>
+          <span className="px-3 py-1.5 bg-[#F7E594] border border-merlot rounded-lg text-xs font-bold text-merlot">Open source (MIT)</span>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-8 z-10 text-center pb-4">
+        <p className="text-merlot font-bold text-sm flex items-center justify-center gap-2">
+          Made with love by Jahnavi 
+          <a href="https://github.com/JahnaviSarkar/CapyDocs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-merlot rounded hover:bg-gray-50 transition-colors">
+             GitHub
+          </a>
+        </p>
       </div>
     </div>
   );
