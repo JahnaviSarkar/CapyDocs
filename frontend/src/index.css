@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #FFF9E3;
+  --color-primary: #F5BAD5;
+  --color-secondary: #BAD6FD;
+  --color-highlight: #F7E594;
+  --color-merlot: #570301;
+  --color-capy: #C9996B;
+}
+
+body {
+  @apply bg-background text-merlot antialiased min-h-screen font-sans;
+}
+
+.outline-merlot {
+  outline: 3px solid #570301;
+}
+
+.border-merlot-3 {
+  border: 3px solid #570301;
+}
