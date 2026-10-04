@@ -95,8 +95,6 @@ def parse_answer_and_sources(raw_answer: str):
     clean_answer = re.sub(r'SOURCES:\s*\[.*?\]', '', raw_answer).strip()
     clean_answer = re.sub(r'SOURCES:.*$', '', clean_answer, flags=re.MULTILINE).strip()
     
-    # Fix the lost em dash and quotes replacement character
-    clean_answer = clean_answer.replace('\ufffd', '—')
     return clean_answer, pages_used
 
 @app.post("/chat")

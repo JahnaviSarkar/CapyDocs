@@ -70,7 +70,4 @@ def test_parse_answer_and_sources():
     clean3, pages3 = parse_answer_and_sources(raw3)
     assert pages3 == []
     
-    # Fix em dash
-    raw4 = "She said, \ufffdHello!\ufffd \nSOURCES: [2]"
-    clean4, pages4 = parse_answer_and_sources(raw4)
-    assert clean4 == "She said, —Hello!—"
+
