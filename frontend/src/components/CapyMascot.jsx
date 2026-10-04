@@ -37,27 +37,27 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
       
       {/* Speech Bubble */}
       {showSpeech && (
-        <div className="absolute top-0 left-0 w-48 bg-white border-4 border-merlot rounded-2xl p-3 shadow-[4px_4px_0_#570301] z-30 transform -translate-x-1/3 -translate-y-1/3">
+        <div className="absolute top-2 right-[75%] w-48 bg-white border-4 border-merlot rounded-2xl p-3 shadow-[4px_4px_0_#570301] z-30">
           <AnimatePresence mode="wait">
             <motion.p
               key={speechText || speechIndex}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
+              initial={{ opacity: 0, x: 5 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -5 }}
               className="font-bold text-sm text-merlot text-center"
             >
               {speechText || SPEECH_LINES[speechIndex]}
             </motion.p>
           </AnimatePresence>
-          {/* Bubble tail */}
-          <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-t-[14px] border-t-merlot border-r-[10px] border-r-transparent" />
-          <div className="absolute -bottom-1.5 right-7 w-0 h-0 border-l-[6px] border-l-transparent border-t-[10px] border-t-white border-r-[6px] border-r-transparent" />
+          {/* Bubble tail pointing right */}
+          <div className="absolute top-1/2 -right-[18px] w-0 h-0 border-t-[10px] border-t-transparent border-l-[14px] border-l-merlot border-b-[10px] border-b-transparent transform -translate-y-1/2" />
+          <div className="absolute top-1/2 -right-[12px] w-0 h-0 border-t-[7px] border-t-transparent border-l-[10px] border-l-white border-b-[7px] border-b-transparent transform -translate-y-1/2" />
         </div>
       )}
 
       {/* Capybara */}
       <motion.div
-        className="absolute z-10 pointer-events-auto flex items-center justify-center bottom-6"
+        className="absolute z-10 pointer-events-auto flex items-center justify-center bottom-0"
         style={{ width: size, height: size }}
         variants={capyVariants}
         initial="idle"
