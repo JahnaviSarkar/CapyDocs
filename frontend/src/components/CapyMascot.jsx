@@ -77,11 +77,11 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
           <rect x="0" y="45" width="100" height="5" fill="#8B5A2B" />
           <rect x="0" y="45" width="100" height="1" fill="#A06A3B" />
           
-          {/* Laptop (Left) */}
-          <rect x="10" y="32" width="25" height="13" fill="#e2e8f0" />
-          <rect x="12" y="34" width="21" height="9" fill="#475569" />
-          <rect x="10" y="32" width="25" height="1" fill="#f8fafc" />
-          <rect x="9" y="44" width="27" height="1" fill="#94a3b8" />
+          {/* Pink Mac Laptop (Left) */}
+          <rect x="10" y="32" width="25" height="13" fill="#F5BAD5" />
+          <rect x="12" y="34" width="21" height="9" fill="#1e293b" />
+          <rect x="10" y="32" width="25" height="1" fill="#ffffff" />
+          <rect x="9" y="44" width="27" height="1" fill="#d98ba8" />
 
           {/* Bobbing Straw */}
           <motion.g variants={strawVariants} initial="idle" animate={status}>
