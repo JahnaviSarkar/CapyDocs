@@ -29,3 +29,23 @@ def test_retriever():
     res = retriever.retrieve("fruit")
     assert len(res) > 0
     assert "Apple" in res[0].page_content
+
+def test_purpose_field_prompts():
+    from app.llm import generate_answer
+    from unittest.mock import MagicMock
+    
+    # Mock LLM
+    mock_llm = MagicMock()
+    mock_llm.invoke.return_value = MagicMock(content="Mocked Answer")
+    
+    docs = [Document(page_content="Some context", metadata={"page": 0})]
+    
+    # Test 'student'
+    generate_answer(mock_llm, docs, "What is this?", purpose="student")
+    call_arg_student = mock_llm.invoke.call_args[0][0]
+    assert "study-friendly explanation suitable for a student" in call_arg_student
+    
+    # Test 'work'
+    generate_answer(mock_llm, docs, "What is this?", purpose="work")
+    call_arg_work = mock_llm.invoke.call_args[0][0]
+    assert "concise and professional explanation" in call_arg_work
