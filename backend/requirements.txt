@@ -3,3 +3,10 @@ uvicorn
 python-multipart
 pytest
 pydantic
+langchain-community
+langchain-text-splitters
+langchain-huggingface
+langchain-ollama
+rank_bm25
+pypdf
+faiss-cpu
