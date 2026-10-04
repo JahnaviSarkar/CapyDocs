@@ -1,4 +1,12 @@
 @import "tailwindcss";
+@import '@fontsource/fredoka/500.css';
+@import '@fontsource/fredoka/600.css';
+@import '@fontsource/fredoka/700.css';
+@import '@fontsource/nunito/400.css';
+@import '@fontsource/nunito/600.css';
+@import '@fontsource/nunito/700.css';
+@import '@fontsource/pixelify-sans/400.css';
+@import '@fontsource/pixelify-sans/600.css';
 
 @theme {
   --color-background: #FFF9E3;
@@ -7,10 +15,18 @@
   --color-highlight: #F7E594;
   --color-merlot: #570301;
   --color-capy: #C9996B;
+
+  --font-heading: "Fredoka", ui-rounded, "Hiragino Maru Gothic ProN", Quicksand, Comfortaa, Manjari, "Arial Rounded MT Bold", Calibri, source-sans-pro, sans-serif;
+  --font-body: "Nunito", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-pixel: "Pixelify Sans", "Press Start 2P", "VT323", "Courier New", monospace;
 }
 
 body {
-  @apply bg-background text-merlot antialiased min-h-screen font-sans;
+  @apply bg-background text-merlot antialiased min-h-screen font-body;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }
 
 .outline-merlot {

@@ -44,7 +44,7 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
               initial={{ opacity: 0, x: 5 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -5 }}
-              className="font-bold text-sm text-merlot text-center"
+              className="font-pixel text-sm text-merlot text-center"
             >
               {speechText || SPEECH_LINES[speechIndex]}
             </motion.p>

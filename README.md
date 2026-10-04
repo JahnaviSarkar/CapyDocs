@@ -32,6 +32,7 @@ graph TD
 
 ## Tech Stack
 - **Frontend**: Vite, React, Tailwind CSS v4, Framer Motion
+- **Fonts**: [Fredoka](https://fontsource.org/fonts/fredoka), [Nunito](https://fontsource.org/fonts/nunito), and [Pixelify Sans](https://fontsource.org/fonts/pixelify-sans) under the SIL Open Font License.
 - **Backend**: FastAPI, Python 3.12, Pytest
 - **AI**: Ollama (gemma4:cloud by default), LangChain
 

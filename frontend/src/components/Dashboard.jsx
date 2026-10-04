@@ -120,8 +120,8 @@ export default function Dashboard({ onStart }) {
 
       {/* Headline */}
       <div className="text-center z-10 mb-8 md:mb-12">
-        <h1 className="text-5xl md:text-7xl font-extrabold text-merlot mb-4 drop-shadow-[2px_2px_0_#F7E594]">Chat with your PDFs.</h1>
-        <p className="text-xl md:text-2xl font-bold text-merlot opacity-80">Papr reads it so you don't have to.</p>
+        <h1 className="text-5xl md:text-7xl font-extrabold font-heading text-merlot mb-4 drop-shadow-[2px_2px_0_#F7E594]">Chat with your PDFs.</h1>
+        <p className="text-xl md:text-2xl font-bold font-heading text-merlot opacity-80">Papr reads it so you don't have to.</p>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-5xl z-10">
@@ -142,7 +142,7 @@ export default function Dashboard({ onStart }) {
                 <button
                   key={opt.id}
                   onClick={() => setPurpose(opt.id)}
-                  className={`flex items-center gap-2 p-2 rounded-lg border-2 transition-colors ${isSelected ? 'bg-merlot text-white border-merlot' : 'bg-transparent text-merlot border-merlot/30 hover:border-merlot'}`}
+                  className={`flex items-center font-heading gap-2 p-2 rounded-lg border-2 transition-colors ${isSelected ? 'bg-merlot text-white border-merlot' : 'bg-transparent text-merlot border-merlot/30 hover:border-merlot'}`}
                 >
                   <Icon size={18} />
                   <span className="font-bold text-sm">{opt.label}</span>
@@ -209,7 +209,7 @@ export default function Dashboard({ onStart }) {
         <button 
           disabled={!file || isUploading} 
           onClick={handleStart}
-          className={`p-4 rounded-xl font-bold text-xl border-merlot-3 transition-transform ${(!file || isUploading) ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'bg-[#F5BAD5] hover:-translate-y-1 hover:shadow-[4px_4px_0_#570301] shadow-[2px_2px_0_#570301] active:scale-95'}`}
+          className={`p-4 rounded-xl font-heading font-bold text-xl border-merlot-3 transition-transform ${(!file || isUploading) ? 'bg-gray-300 cursor-not-allowed text-gray-500' : 'bg-[#F5BAD5] hover:-translate-y-1 hover:shadow-[4px_4px_0_#570301] shadow-[2px_2px_0_#570301] active:scale-95'}`}
         >
           {isUploading ? 'Uploading...' : !file ? 'Add a PDF to start' : "Let's start"}
         </button>
@@ -240,9 +240,9 @@ export default function Dashboard({ onStart }) {
 
         {/* Badges */}
         <div className="flex flex-wrap justify-center gap-3">
-          <span className="px-3 py-1.5 bg-[#BAD6FD] border border-merlot rounded-lg text-xs font-bold text-merlot">Cites page numbers</span>
-          <span className="px-3 py-1.5 bg-[#F5BAD5] border border-merlot rounded-lg text-xs font-bold text-merlot">PDF kept in memory, not saved</span>
-          <span className="px-3 py-1.5 bg-[#F7E594] border border-merlot rounded-lg text-xs font-bold text-merlot">Open source (MIT)</span>
+          <span className="px-3 py-1.5 bg-[#BAD6FD] border border-merlot rounded-lg text-xs font-pixel text-merlot">Cites page numbers</span>
+          <span className="px-3 py-1.5 bg-[#F5BAD5] border border-merlot rounded-lg text-xs font-pixel text-merlot">PDF kept in memory, not saved</span>
+          <span className="px-3 py-1.5 bg-[#F7E594] border border-merlot rounded-lg text-xs font-pixel text-merlot">Open source (MIT)</span>
         </div>
       </div>
 

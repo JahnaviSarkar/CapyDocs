@@ -148,7 +148,7 @@ export default function Workspace({ session, onBack }) {
         <div className="bg-secondary rounded-3xl border-merlot-3 shadow-[4px_4px_0_#570301] p-4 min-h-[100px] flex justify-between items-center relative">
           <button 
             onClick={onBack}
-            className="px-4 py-2 bg-white border-merlot-3 rounded-xl font-bold shadow-[2px_2px_0_#570301] hover:bg-gray-100"
+            className="px-4 py-2 bg-white font-heading border-merlot-3 rounded-xl font-bold shadow-[2px_2px_0_#570301] hover:bg-gray-100"
           >
             ← Back
           </button>
@@ -165,7 +165,7 @@ export default function Workspace({ session, onBack }) {
           <button 
             onClick={handleSummary}
             disabled={isTyping}
-            className="flex items-center gap-2 px-4 py-2 bg-highlight border-merlot-3 rounded-xl font-bold shadow-[2px_2px_0_#570301] hover:bg-yellow-300 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-highlight font-heading border-merlot-3 rounded-xl font-bold shadow-[2px_2px_0_#570301] hover:bg-yellow-300 disabled:opacity-50"
           >
             <FileText size={18} /> Summary
           </button>
