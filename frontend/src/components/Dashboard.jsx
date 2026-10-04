@@ -7,8 +7,25 @@ export default function Dashboard({ onStart }) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleFileChange = (e) => {
-    const selected = e.target.files[0];
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const selected = e.dataTransfer.files[0];
+    validateAndSetFile(selected);
+  };
+
+  const validateAndSetFile = (selected) => {
     if (selected && selected.type !== 'application/pdf') {
       setError('Only PDF files are supported.');
       setFile(null);
@@ -21,6 +38,10 @@ export default function Dashboard({ onStart }) {
     }
     setError('');
     setFile(selected);
+  };
+
+  const handleFileChange = (e) => {
+    validateAndSetFile(e.target.files[0]);
   };
 
   const handleStart = async () => {
@@ -52,9 +73,14 @@ export default function Dashboard({ onStart }) {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen items-center justify-center p-8 gap-12">
+    <div 
+      className="flex flex-col md:flex-row min-h-screen items-center justify-center p-8 gap-12"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="flex-1 flex justify-center md:justify-end">
-        <Papr message="Let's chat with your PDF!" />
+        <Papr state={isUploading ? 'reading' : 'hello'} isDragging={isDragging} message="Hi!" />
       </div>
       
       <div className="flex-1 flex flex-col gap-6 max-w-md bg-white p-8 rounded-3xl border-merlot-3 shadow-[8px_8px_0_#570301]">

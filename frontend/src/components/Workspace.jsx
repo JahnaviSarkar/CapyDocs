@@ -8,6 +8,7 @@ export default function Workspace({ session, onBack }) {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [pageHash, setPageHash] = useState('');
+  const [paprState, setPaprState] = useState('idle');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -18,12 +19,18 @@ export default function Workspace({ session, onBack }) {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  const triggerAnswering = () => {
+    setPaprState('answering');
+    setTimeout(() => setPaprState('idle'), 2000);
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
+    setPaprState('thinking');
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/chat`, {
@@ -35,8 +42,15 @@ export default function Workspace({ session, onBack }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error generating answer');
       
-      setMessages(prev => [...prev, { role: 'bot', text: data.answer, pages: data.pages_used }]);
+      const ans = data.answer;
+      if (ans.toLowerCase().includes("don't know") || ans.toLowerCase().includes("could not find")) {
+        setPaprState('notfound');
+      } else {
+        triggerAnswering();
+      }
+      setMessages(prev => [...prev, { role: 'bot', text: ans, pages: data.pages_used }]);
     } catch (err) {
+      setPaprState('error');
       setMessages(prev => [...prev, { role: 'error', text: err.message }]);
     } finally {
       setIsTyping(false);
@@ -47,6 +61,7 @@ export default function Workspace({ session, onBack }) {
     if (isTyping) return;
     setMessages(prev => [...prev, { role: 'user', text: "Generate a summary" }]);
     setIsTyping(true);
+    setPaprState('thinking');
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/summary`, {
@@ -58,8 +73,10 @@ export default function Workspace({ session, onBack }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error generating summary');
       
+      triggerAnswering();
       setMessages(prev => [...prev, { role: 'bot', text: data.summary }]);
     } catch (err) {
+      setPaprState('error');
       setMessages(prev => [...prev, { role: 'error', text: err.message }]);
     } finally {
       setIsTyping(false);
@@ -84,14 +101,19 @@ export default function Workspace({ session, onBack }) {
       {/* Right: Workspace */}
       <div className="flex-1 flex flex-col gap-4">
         {/* Top: Papr mascot */}
-        <div className="bg-secondary rounded-3xl border-merlot-3 shadow-[4px_4px_0_#570301] p-4 flex justify-between items-center">
+        <div className="bg-secondary rounded-3xl border-merlot-3 shadow-[4px_4px_0_#570301] p-4 flex justify-between items-center relative">
           <button 
             onClick={onBack}
             className="px-4 py-2 bg-white border-merlot-3 rounded-xl font-bold shadow-[2px_2px_0_#570301] hover:bg-gray-100"
           >
             ← Back
           </button>
-          <Papr message={isTyping ? "Thinking..." : "I'm ready!"} />
+          
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto">
+              <Papr state={paprState} isTyping={input.length > 0} message={isTyping ? "Thinking..." : "I'm ready!"} />
+            </div>
+          </div>
           <button 
             onClick={handleSummary}
             disabled={isTyping}
