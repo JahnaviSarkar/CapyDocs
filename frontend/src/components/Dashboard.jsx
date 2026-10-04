@@ -10,10 +10,11 @@ const PURPOSE_OPTIONS = [
   { id: 'general', label: 'General', icon: Globe, desc: 'A balanced tone for everyday reading' }
 ];
 
-export default function Dashboard({ onStart }) {
+export default function Dashboard({ onStart, timeoutError }) {
   const [purpose, setPurpose] = useState('general');
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
   const [error, setError] = useState('');
 
   const [isDragging, setIsDragging] = useState(false);
@@ -64,7 +65,12 @@ export default function Dashboard({ onStart }) {
   const handleStart = async () => {
     if (!file) return;
     setIsUploading(true);
+    setIsWakingUp(false);
     setError('');
+    
+    const wakeTimer = setTimeout(() => {
+      setIsWakingUp(true);
+    }, 3000);
     
     const formData = new FormData();
     formData.append('file', file);
@@ -81,8 +87,12 @@ export default function Dashboard({ onStart }) {
         throw new Error(data.detail || 'Failed to upload PDF');
       }
       
+      clearTimeout(wakeTimer);
+      setIsWakingUp(false);
       onStart({ doc_id: data.doc_id, purpose, fileUrl: URL.createObjectURL(file) });
     } catch (err) {
+      clearTimeout(wakeTimer);
+      setIsWakingUp(false);
       setError(err.message === 'Failed to fetch' ? 'The backend server is offline.' : err.message);
     } finally {
       setIsUploading(false);
@@ -109,13 +119,21 @@ export default function Dashboard({ onStart }) {
       <BackgroundEffects />
 
       {/* Status Pill */}
-      <div className="absolute top-4 right-4 md:right-8 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-merlot shadow-[2px_2px_0_#570301]">
-        <div className={`w-2.5 h-2.5 rounded-full ${healthStatus.status === 'up' ? 'bg-green-500' : 'bg-red-500'}`} />
-        <span className="text-xs font-bold text-merlot">
-          {healthStatus.status === 'up' 
-            ? `Papr is awake ${healthStatus.model ? `(${healthStatus.model})` : ''}` 
-            : "Papr is napping, start the server"}
-        </span>
+      <div className="absolute top-4 right-4 md:right-8 z-50 flex flex-col gap-2">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-merlot shadow-[2px_2px_0_#570301]">
+          <div className={`w-2.5 h-2.5 rounded-full ${healthStatus.status === 'up' ? 'bg-green-500' : 'bg-red-500'}`} />
+          <span className="text-xs font-bold text-merlot">
+            {healthStatus.status === 'up' 
+              ? `Papr is awake ${healthStatus.model ? `(${healthStatus.model})` : ''}` 
+              : "Papr is napping, start the server"}
+          </span>
+        </div>
+        
+        {isWakingUp && (
+          <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-highlight border-2 border-merlot shadow-[2px_2px_0_#570301] animate-pulse">
+            <span className="text-xs font-bold text-merlot">Papr is waking up...</span>
+          </div>
+        )}
       </div>
 
       {/* Headline */}
@@ -126,7 +144,12 @@ export default function Dashboard({ onStart }) {
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-5xl z-10">
         <div className="flex-shrink-0 flex justify-center">
-          <CapyMascot status={isUploading ? 'typing' : isDragging ? 'peeking' : 'idle'} size={380} showSpeech={true} />
+          <CapyMascot 
+            status={isUploading ? 'typing' : isDragging ? 'peeking' : timeoutError ? 'sleepy' : 'idle'} 
+            size={380} 
+            showSpeech={true} 
+            speechText={timeoutError ? "I dozed off, please upload again" : null} 
+          />
         </div>
         
         <div className="flex-1 flex flex-col gap-6 w-full max-w-md bg-white p-8 rounded-3xl border-merlot-3 shadow-[8px_8px_0_#570301]">

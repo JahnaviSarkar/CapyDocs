@@ -3,7 +3,18 @@ from langchain_ollama import ChatOllama
 
 def get_llm():
     model_name = os.getenv("OLLAMA_MODEL", "gemma4:cloud")
-    return ChatOllama(model=model_name)
+    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    api_key = os.getenv("OLLAMA_API_KEY")
+    
+    client_kwargs = {}
+    if api_key:
+        client_kwargs["headers"] = {"Authorization": f"Bearer {api_key}"}
+        
+    return ChatOllama(
+        model=model_name,
+        base_url=base_url,
+        client_kwargs=client_kwargs
+    )
 
 def generate_answer(llm, relevant_docs, question, purpose="general"):
     context = ""

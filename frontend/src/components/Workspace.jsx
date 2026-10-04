@@ -82,6 +82,10 @@ export default function Workspace({ session, onBack }) {
       });
       
       const data = await res.json();
+      if (res.status === 410) {
+        onBack(data.detail || "Session expired");
+        return;
+      }
       if (!res.ok) throw new Error(data.detail || 'Error generating answer');
       
       const ans = data.answer;
@@ -114,6 +118,10 @@ export default function Workspace({ session, onBack }) {
       });
       
       const data = await res.json();
+      if (res.status === 410) {
+        onBack(data.detail || "Session expired");
+        return;
+      }
       if (!res.ok) throw new Error(data.detail || 'Error generating summary');
       
       triggerAnswering();

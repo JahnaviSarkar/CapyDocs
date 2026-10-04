@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: capydocs-backend
+    env: docker
+    plan: free
+    rootDir: backend
+    envVars:
+      - key: OLLAMA_API_KEY
+        sync: false
+      - key: OLLAMA_BASE_URL
+        value: "https://ollama.com"
+      - key: OLLAMA_MODEL
+        value: "gemma4:cloud"
+      - key: EMBEDDING_BACKEND
+        value: "fastembed"
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MAX_UPLOADS_PER_HOUR
+        value: "10"
+      - key: MAX_CHATS_PER_HOUR
+        value: "50"
+      - key: MAX_SUMMARIES_PER_HOUR
+        value: "5"
+      - key: MAX_PAGE_COUNT
+        value: "50"
+      - key: MAX_CONCURRENT_SUMMARIES
+        value: "2"
+      - key: REQUEST_TIMEOUT
+        value: "60"

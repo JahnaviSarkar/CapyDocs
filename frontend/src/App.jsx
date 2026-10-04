@@ -4,13 +4,20 @@ import Workspace from './components/Workspace';
 
 function App() {
   const [session, setSession] = useState(null);
+  const [timeoutError, setTimeoutError] = useState(null);
 
   return (
     <div className="App">
       {!session ? (
-        <Dashboard onStart={(s) => setSession(s)} />
+        <Dashboard 
+          onStart={(s) => { setSession(s); setTimeoutError(null); }} 
+          timeoutError={timeoutError}
+        />
       ) : (
-        <Workspace session={session} onBack={() => setSession(null)} />
+        <Workspace 
+          session={session} 
+          onBack={(err) => { setSession(null); if (err) setTimeoutError(err); }} 
+        />
       )}
     </div>
   );

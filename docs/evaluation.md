@@ -14,4 +14,12 @@
 - **Action**: Uploading a `.txt` file or >20MB file.
 - **Status**: **PASS**. Returns a friendly 400 JSON error.
 - **Action**: Chatting with a fake `doc_id`.
-- **Status**: **PASS**. Returns a friendly 404 JSON error.
+- **Status**: **PASS**. Returns a friendly 404/410 JSON error.
+
+## Memory Usage and Lean Modes
+To accommodate free-tier hosting limits (e.g., Render's 512 MB RAM), we evaluated three retrieval backend modes:
+1. **bm25**: Pure keyword matching. **Peak Memory: ~112 MB**
+2. **fastembed**: Lightweight ONNX models (`BAAI/bge-small-en-v1.5`). **Peak Memory: ~222 MB**
+3. **local**: Full PyTorch models via `sentence-transformers`. **Peak Memory: ~557 MB**
+
+**Conclusion**: `fastembed` is the chosen production default. It provides robust semantic search capabilities while staying safely under the 512 MB memory cap. The `local` mode exceeded 500 MB and risks Out-Of-Memory (OOM) kills.

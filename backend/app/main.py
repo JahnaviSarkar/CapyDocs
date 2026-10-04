@@ -4,7 +4,12 @@ from pydantic import BaseModel
 import os
 import uuid
 import tempfile
+import time
+import asyncio
+from collections import defaultdict
 from typing import Dict, Any, Optional
+from fastapi import Request
+from starlette.concurrency import run_in_threadpool
 
 from app.pdf_loader import load_and_clean_pdf
 from app.chunker import chunk_documents
@@ -14,9 +19,12 @@ from app.summarizer import generate_summary
 
 app = FastAPI(title="CapyDocs API")
 
+origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
+origins = [o.strip() for o in origins_str.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,6 +35,30 @@ app.add_middleware(
 document_store: Dict[str, Any] = {}
 
 MAX_FILE_SIZE = 20 * 1024 * 1024 # 20MB
+MAX_UPLOADS_PER_HOUR = int(os.getenv("MAX_UPLOADS_PER_HOUR", "10"))
+MAX_CHATS_PER_HOUR = int(os.getenv("MAX_CHATS_PER_HOUR", "50"))
+MAX_SUMMARIES_PER_HOUR = int(os.getenv("MAX_SUMMARIES_PER_HOUR", "5"))
+MAX_PAGE_COUNT = int(os.getenv("MAX_PAGE_COUNT", "50"))
+MAX_CONCURRENT_SUMMARIES = int(os.getenv("MAX_CONCURRENT_SUMMARIES", "2"))
+REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "60"))
+
+class RateLimiter:
+    def __init__(self):
+        self.uploads = defaultdict(list)
+        self.chats = defaultdict(list)
+        self.summaries = defaultdict(list)
+        
+    def check_and_add(self, ip: str, store: dict, max_count: int):
+        now = time.time()
+        store[ip] = [t for t in store[ip] if now - t < 3600]
+        if len(store[ip]) >= max_count:
+            return False
+        store[ip].append(now)
+        return True
+
+limiter = RateLimiter()
+active_summaries = 0
+active_summaries_lock = asyncio.Lock()
 
 class ChatRequest(BaseModel):
     doc_id: str
@@ -39,10 +71,16 @@ class SummaryRequest(BaseModel):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    model_name = os.getenv("OLLAMA_MODEL", "gemma4:cloud")
+    retrieval_mode = os.getenv("EMBEDDING_BACKEND", "fastembed")
+    return {"status": "up", "model": model_name, "retrieval_mode": retrieval_mode}
 
 @app.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(request: Request, file: UploadFile = File(...)):
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    if not limiter.check_and_add(client_ip, limiter.uploads, MAX_UPLOADS_PER_HOUR):
+        raise HTTPException(status_code=429, detail="Too many uploads. Please try again later.")
+        
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
         
@@ -67,6 +105,10 @@ async def upload_pdf(file: UploadFile = File(...)):
         }
         
         pages = set(doc.metadata.get("page", 0) for doc in chunks)
+        
+        if len(pages) > MAX_PAGE_COUNT:
+            del document_store[doc_id]
+            raise HTTPException(status_code=400, detail=f"PDF is too long. Maximum allowed is {MAX_PAGE_COUNT} pages.")
         
         return {
             "doc_id": doc_id,
@@ -97,43 +139,75 @@ def parse_answer_and_sources(raw_answer: str):
     
     return clean_answer, pages_used
 
-@app.post("/chat")
-def chat(req: ChatRequest):
-    if req.doc_id not in document_store:
-        raise HTTPException(status_code=404, detail="Document not found.")
-        
+def sync_chat_logic(req: ChatRequest):
     store = document_store[req.doc_id]
     retriever = store["retriever"]
     
+    relevant_docs = retriever.retrieve(req.question)
+    if not relevant_docs:
+        return {"answer": "Could not find relevant information in the PDF.", "pages_used": []}
+        
+    llm = get_llm()
+    raw_answer = generate_answer(llm, relevant_docs, req.question, req.purpose)
+    
+    clean_answer, pages_used = parse_answer_and_sources(raw_answer)
+    return {"answer": clean_answer, "pages_used": pages_used}
+
+@app.post("/chat")
+async def chat(req: ChatRequest, request: Request):
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    if not limiter.check_and_add(client_ip, limiter.chats, MAX_CHATS_PER_HOUR):
+        raise HTTPException(status_code=429, detail="Too many chat requests. Please try again later.")
+        
+    if req.doc_id not in document_store:
+        raise HTTPException(status_code=410, detail="Session expired")
+        
     try:
-        relevant_docs = retriever.retrieve(req.question)
-        if not relevant_docs:
-            return {"answer": "Could not find relevant information in the PDF.", "pages_used": []}
-            
-        llm = get_llm()
-        raw_answer = generate_answer(llm, relevant_docs, req.question, req.purpose)
-        
-        clean_answer, pages_used = parse_answer_and_sources(raw_answer)
-        
-        return {"answer": clean_answer, "pages_used": pages_used}
+        return await asyncio.wait_for(run_in_threadpool(sync_chat_logic, req), timeout=REQUEST_TIMEOUT)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail="Request timed out while contacting the AI.")
     except Exception as e:
-        if "connection" in str(e).lower() or "ollama" in str(e).lower():
+        error_msg = str(e).lower()
+        if "unauthorized" in error_msg or "401" in error_msg:
+            raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key for Ollama Cloud.")
+        if "connection" in error_msg or "ollama" in error_msg:
             raise HTTPException(status_code=503, detail="The AI model service (Ollama) is currently unavailable. Please ensure it is running.")
         raise HTTPException(status_code=500, detail="An error occurred while generating the answer.")
 
-@app.post("/summary")
-def summary(req: SummaryRequest):
-    if req.doc_id not in document_store:
-        raise HTTPException(status_code=404, detail="Document not found.")
-        
+def sync_summary_logic(req: SummaryRequest):
     store = document_store[req.doc_id]
     chunks = store["chunks"]
+    llm = get_llm()
+    sum_text = generate_summary(llm, chunks, req.purpose)
+    return {"summary": sum_text}
+
+@app.post("/summary")
+async def summary(req: SummaryRequest, request: Request):
+    global active_summaries
     
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    if not limiter.check_and_add(client_ip, limiter.summaries, MAX_SUMMARIES_PER_HOUR):
+        raise HTTPException(status_code=429, detail="Too many summary requests. Please try again later.")
+        
+    if req.doc_id not in document_store:
+        raise HTTPException(status_code=410, detail="Session expired")
+        
+    async with active_summaries_lock:
+        if active_summaries >= MAX_CONCURRENT_SUMMARIES:
+            raise HTTPException(status_code=429, detail="Server is currently busy summarizing other documents. Please try again shortly.")
+        active_summaries += 1
+        
     try:
-        llm = get_llm()
-        sum_text = generate_summary(llm, chunks, req.purpose)
-        return {"summary": sum_text}
+        return await asyncio.wait_for(run_in_threadpool(sync_summary_logic, req), timeout=REQUEST_TIMEOUT)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail="Request timed out while generating summary.")
     except Exception as e:
-        if "connection" in str(e).lower() or "ollama" in str(e).lower():
+        error_msg = str(e).lower()
+        if "unauthorized" in error_msg or "401" in error_msg:
+            raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key for Ollama Cloud.")
+        if "connection" in error_msg or "ollama" in error_msg:
             raise HTTPException(status_code=503, detail="The AI model service (Ollama) is currently unavailable. Please ensure it is running.")
         raise HTTPException(status_code=500, detail="An error occurred while generating the summary.")
+    finally:
+        async with active_summaries_lock:
+            active_summaries -= 1

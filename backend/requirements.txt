@@ -9,3 +9,4 @@ langchain-ollama
 rank_bm25
 pypdf
 faiss-cpu
+fastembed

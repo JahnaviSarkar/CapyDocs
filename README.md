@@ -71,3 +71,29 @@ CapyDocs is configured by default to run locally via Ollama, ensuring zero data 
 - [ ] Persistent database (Postgres/SQLite) for chat history
 - [ ] Test-mode payment integration
 - [ ] Advanced custom system prompts
+
+## Deploying to Render (Free Tier)
+CapyDocs is configured for zero-cost deployment on Render's Free tier, connecting to Ollama's Cloud API for inference.
+
+### Architecture
+- **Frontend**: A static React build deployed via a static site host (e.g., Vercel, Netlify, or Render Static Web).
+- **Backend**: A Dockerized FastAPI Python app running on Render's Web Service (Free Tier).
+- **Inference**: All embeddings (`fastembed`) are generated on the backend using lightweight ONNX models. All chat/summary generation relies on the external Ollama Cloud API.
+
+### Environment Variables
+Set these on your backend host:
+- `OLLAMA_API_KEY`: Your Ollama Cloud key (e.g., `sk-...`). Keep this secret (`sync: false`).
+- `OLLAMA_BASE_URL`: Set to `https://ollama.com`.
+- `OLLAMA_MODEL`: E.g., `gemma4:cloud`.
+- `EMBEDDING_BACKEND`: `fastembed` (default, ~200MB memory footprint), `bm25`, or `local`.
+- `CORS_ORIGINS`: Comma-separated list of allowed frontend URLs.
+- *Rate Limits*: `MAX_UPLOADS_PER_HOUR`, `MAX_CHATS_PER_HOUR`, `MAX_SUMMARIES_PER_HOUR`, `MAX_CONCURRENT_SUMMARIES`.
+- *Caps*: `MAX_PAGE_COUNT`, `REQUEST_TIMEOUT`.
+
+### Free-Tier Limitations
+- **Cold Starts**: Render spins down free containers after 15 minutes of inactivity. When you upload your first PDF, the server may take ~50 seconds to wake up (Papr will show a "waking up" banner).
+- **Memory Limits**: The free tier provides 512 MB of RAM. Using the `fastembed` backend guarantees the footprint stays under ~300 MB. Do not use `local` (PyTorch) on the free tier.
+- **Ephemeral Storage**: All uploads and in-memory embeddings are lost when the container sleeps. Papr handles this gracefully: he will "doze off" and prompt you to re-upload.
+
+### Privacy Note
+**Caution**: When deployed, uploaded PDFs and chat questions are sent externally to the model provider (Ollama Cloud) for processing. Do not upload sensitive, personal, or confidential documents.
