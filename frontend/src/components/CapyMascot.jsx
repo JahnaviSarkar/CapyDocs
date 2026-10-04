@@ -8,16 +8,16 @@ const SPEECH_LINES = [
   "Make sure it's under 20 MB!"
 ];
 
-export default function CapyMascot({ status = 'idle', className = '', size = 120, showSpeech = false }) {
+export default function CapyMascot({ status = 'idle', className = '', size = 120, showSpeech = false, speechText = null }) {
   const [speechIndex, setSpeechIndex] = useState(0);
 
   useEffect(() => {
-    if (!showSpeech) return;
+    if (!showSpeech || speechText) return;
     const interval = setInterval(() => {
       setSpeechIndex(prev => (prev + 1) % SPEECH_LINES.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [showSpeech]);
+  }, [showSpeech, speechText]);
 
   // Capybara animations
   const capyVariants = {
@@ -40,13 +40,13 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
         <div className="absolute top-0 left-0 w-48 bg-white border-4 border-merlot rounded-2xl p-3 shadow-[4px_4px_0_#570301] z-30 transform -translate-x-1/3 -translate-y-1/3">
           <AnimatePresence mode="wait">
             <motion.p
-              key={speechIndex}
+              key={speechText || speechIndex}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
               className="font-bold text-sm text-merlot text-center"
             >
-              {SPEECH_LINES[speechIndex]}
+              {speechText || SPEECH_LINES[speechIndex]}
             </motion.p>
           </AnimatePresence>
           {/* Bubble tail */}

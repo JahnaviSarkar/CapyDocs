@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Papr from './Papr';
-import { Send, Loader2, FileText } from 'lucide-react';
+import CapyMascot from './CapyMascot';
+import { Send, FileText } from 'lucide-react';
 
 export default function Workspace({ session, onBack }) {
   const { doc_id, purpose, fileUrl } = session;
@@ -8,8 +8,44 @@ export default function Workspace({ session, onBack }) {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [pageHash, setPageHash] = useState('');
-  const [paprState, setPaprState] = useState('idle');
+  const [mascotStatus, setMascotStatus] = useState('idle');
+  const [speechText, setSpeechText] = useState(null);
   const messagesEndRef = useRef(null);
+  const lastActivityRef = useRef(Date.now());
+
+  const FUNNY_COMMENTS = [
+    "Boom! Knowledge delivered.",
+    "Did you get all that?",
+    "Easy peasy.",
+    "Another page devoured!",
+    "My brain is huge right now."
+  ];
+
+  const IDLE_COMMENTS = [
+    "Hey! Are you scrolling reels?",
+    "Focus! The PDF won't read itself.",
+    "Don't fall asleep on me!",
+    "Are we still working?"
+  ];
+
+  useEffect(() => {
+    const checkIdle = setInterval(() => {
+      if (Date.now() - lastActivityRef.current > 30000 && !isTyping) {
+        const randomIdle = IDLE_COMMENTS[Math.floor(Math.random() * IDLE_COMMENTS.length)];
+        setSpeechText(randomIdle);
+        setMascotStatus('peeking');
+      }
+    }, 5000);
+    return () => clearInterval(checkIdle);
+  }, [isTyping]);
+
+  const updateActivity = () => {
+    lastActivityRef.current = Date.now();
+    if (speechText) {
+      setSpeechText(null);
+      setMascotStatus('idle');
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -20,17 +56,23 @@ export default function Workspace({ session, onBack }) {
   }, [messages, isTyping]);
 
   const triggerAnswering = () => {
-    setPaprState('answering');
-    setTimeout(() => setPaprState('idle'), 2000);
+    setMascotStatus('peeking');
+    const randomComment = FUNNY_COMMENTS[Math.floor(Math.random() * FUNNY_COMMENTS.length)];
+    setSpeechText(randomComment);
+    setTimeout(() => {
+      setSpeechText(null);
+      setMascotStatus('idle');
+    }, 5000);
   };
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
+    updateActivity();
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
-    setPaprState('thinking');
+    setMascotStatus('typing');
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/chat`, {
@@ -44,13 +86,13 @@ export default function Workspace({ session, onBack }) {
       
       const ans = data.answer;
       if (ans.toLowerCase().includes("don't know") || ans.toLowerCase().includes("could not find")) {
-        setPaprState('notfound');
+        setMascotStatus('peeking');
       } else {
         triggerAnswering();
       }
       setMessages(prev => [...prev, { role: 'bot', text: ans, pages: data.pages_used }]);
     } catch (err) {
-      setPaprState('error');
+      setMascotStatus('peeking');
       setMessages(prev => [...prev, { role: 'error', text: err.message }]);
     } finally {
       setIsTyping(false);
@@ -59,9 +101,10 @@ export default function Workspace({ session, onBack }) {
 
   const handleSummary = async () => {
     if (isTyping) return;
+    updateActivity();
     setMessages(prev => [...prev, { role: 'user', text: "Generate a summary" }]);
     setIsTyping(true);
-    setPaprState('thinking');
+    setMascotStatus('typing');
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/summary`, {
@@ -76,7 +119,7 @@ export default function Workspace({ session, onBack }) {
       triggerAnswering();
       setMessages(prev => [...prev, { role: 'bot', text: data.summary }]);
     } catch (err) {
-      setPaprState('error');
+      setMascotStatus('peeking');
       setMessages(prev => [...prev, { role: 'error', text: err.message }]);
     } finally {
       setIsTyping(false);
@@ -84,6 +127,7 @@ export default function Workspace({ session, onBack }) {
   };
 
   const handlePageClick = (page) => {
+    updateActivity();
     setPageHash(`#page=${page}`);
   };
 
@@ -111,7 +155,11 @@ export default function Workspace({ session, onBack }) {
           
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
-              <Papr state={paprState} isTyping={input.length > 0} message={isTyping ? "Thinking..." : "I'm ready!"} />
+              <CapyMascot 
+                status={isTyping ? 'typing' : mascotStatus} 
+                showSpeech={!!speechText} 
+                speechText={speechText} 
+              />
             </div>
           </div>
           <button 
