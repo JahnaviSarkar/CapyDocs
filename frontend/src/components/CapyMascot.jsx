@@ -37,14 +37,14 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
       
       {/* Speech Bubble */}
       {showSpeech && (
-        <div className="absolute top-2 right-full mr-2 w-48 bg-white border-4 border-merlot rounded-2xl p-3 shadow-[4px_4px_0_#570301] z-30">
+        <div className="absolute top-2 right-[85%] w-48 bg-white border-4 border-merlot rounded-2xl p-3 shadow-[4px_4px_0_#570301] z-30">
           <AnimatePresence mode="wait">
             <motion.p
               key={speechText || speechIndex}
               initial={{ opacity: 0, x: 5 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -5 }}
-              className="font-pixel text-sm text-merlot text-center"
+              className="font-bold text-sm text-merlot text-center"
             >
               {speechText || SPEECH_LINES[speechIndex]}
             </motion.p>
