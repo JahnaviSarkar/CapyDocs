@@ -3,7 +3,10 @@
 CapyDocs is a beautiful, open-source "chat with your PDF" web application. It combines a robust RAG (Retrieval-Augmented Generation) backend with a cute, responsive frontend featuring "Papr" the animated capybara mascot. 
 
 ## Features
-- **Local AI Privacy**: Powered by Ollama, all inference runs entirely on your local machine. No data is sent to the cloud!
+- **Local-first AI**: Runs on Ollama. With a local model (for example
+  `llama3.2`), everything stays on your machine. The default `gemma4:cloud`
+  model runs on Ollama's servers, so the parts of your PDF used to answer are
+  sent there.
 - **Intelligent RAG**: Features Hybrid BM25 + Vector Search with Reciprocal Rank Fusion (RRF), map-reduce summarization, and positional heuristics.
 - **Smart Sourcing**: Answers include precise page references, allowing you to instantly jump to the source in the built-in PDF viewer.
 - **Tailored Answers**: Choose a "purpose" (Student, Work, Research, General) to dynamically adjust the LLM's response style.
@@ -38,27 +41,45 @@ graph TD
 
 ## Setup Instructions
 
-### 1. Install Ollama
-Ensure you have [Ollama](https://ollama.com/) installed and running on your system. 
-```bash
-ollama run gemma4:cloud
-```
+### Prerequisites
+Python 3.11 or newer, Node.js 20 or newer, and Ollama on Windows.
 
-### 2. Environment Variables
-Create a `.env` file in the `frontend` directory:
-```
-VITE_API_URL=http://127.0.0.1:8000
-```
+### 1. Choose a model
+Cloud model (works on any laptop, needs a free Ollama account):
+    ollama signin
+    ollama run gemma4:cloud
+Local model (fully private, needs more RAM):
+    ollama pull llama3.2
+Then set the model name in backend/.env (see step 3).
 
-### 3. One-Command Start (Windows)
-We've provided a simple PowerShell script to boot up the entire stack. From the root of the project, run:
-```bash
-.\start-dev.ps1
-```
-This will automatically verify Ollama is running, launch the backend API in one window, and start the Vite frontend in another.
+### 2. Install the backend
+    python -m venv .venv
+    .\.venv\Scripts\activate
+    pip install -r backend\requirements.txt
+
+### 3. Configure
+    copy backend\.env.example backend\.env
+    copy frontend\.env.example frontend\.env
+Open backend\.env and set the model name. The frontend .env should contain
+VITE_API_URL=http://127.0.0.1:8000.
+
+### 4. Install the frontend
+    cd frontend
+    npm install
+    cd ..
+
+### 5. Run everything
+    .\start-dev.ps1
+Then open http://localhost:5173 in your browser.
 
 ## Privacy Note
-CapyDocs is configured by default to run locally via Ollama, ensuring zero data leakage. If you modify `.env` to use a cloud provider (like OpenAI or Anthropic), please note that **retrieved text from your PDFs will be sent to the model provider**.
+CapyDocs sends your question and the most relevant excerpts of your PDF (not
+the whole file) to the model to produce an answer. The Summary feature is
+different: it sends the whole document, in pieces. With a local Ollama model,
+none of this leaves your computer. With a cloud model such as the default
+`gemma4:cloud`, it is sent to Ollama's servers. Uploaded PDFs are kept in
+memory only and are never saved to disk. Don't upload documents you wouldn't
+want a model provider to see unless you switch to a local model.
 
 ## Limitations
 - **Scanned PDFs & Tables**: OCR is not currently supported. Complex tables may not parse cleanly.
