@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import os
 import uuid
 import tempfile
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from app.pdf_loader import load_and_clean_pdf
 from app.chunker import chunk_documents
@@ -31,9 +31,11 @@ MAX_FILE_SIZE = 20 * 1024 * 1024 # 20MB
 class ChatRequest(BaseModel):
     doc_id: str
     question: str
+    purpose: Optional[str] = "general"
 
 class SummaryRequest(BaseModel):
     doc_id: str
+    purpose: Optional[str] = "general"
 
 @app.get("/health")
 def health_check():
@@ -91,7 +93,7 @@ def chat(req: ChatRequest):
             return {"answer": "Could not find relevant information in the PDF.", "pages_used": []}
             
         llm = get_llm()
-        answer = generate_answer(llm, relevant_docs, req.question)
+        answer = generate_answer(llm, relevant_docs, req.question, req.purpose)
         
         pages_used = list(set([doc.metadata.get("page", 0) + 1 for doc in relevant_docs]))
         return {"answer": answer, "pages_used": sorted(pages_used)}
@@ -110,7 +112,7 @@ def summary(req: SummaryRequest):
     
     try:
         llm = get_llm()
-        sum_text = generate_summary(llm, chunks)
+        sum_text = generate_summary(llm, chunks, req.purpose)
         return {"summary": sum_text}
     except Exception as e:
         if "connection" in str(e).lower() or "ollama" in str(e).lower():
