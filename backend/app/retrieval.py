@@ -28,6 +28,15 @@ class Retriever:
         
         all_unique_docs = {doc.page_content: doc for doc in vector_docs + bm25_docs}
         
+        # Positional heuristics
+        q_lower = question.lower()
+        if any(word in q_lower for word in ['end', 'last', 'finally', 'conclusion']):
+            for doc in self.chunks[-3:]:
+                all_unique_docs[doc.page_content] = doc
+        if any(word in q_lower for word in ['beginning', 'start', 'first']):
+            for doc in self.chunks[:3]:
+                all_unique_docs[doc.page_content] = doc
+                
         fused_scores = {}
         for content in all_unique_docs:
             score = 0
@@ -35,6 +44,15 @@ class Retriever:
                 score += 1 / (60 + vector_ranks[content])
             if content in bm25_ranks:
                 score += 1 / (60 + bm25_ranks[content])
+            
+            # Boost score if they match positional heuristics
+            if any(word in q_lower for word in ['end', 'last', 'finally', 'conclusion']):
+                if all_unique_docs[content] in self.chunks[-3:]:
+                    score += 10.0 # Huge boost
+            if any(word in q_lower for word in ['beginning', 'start', 'first']):
+                if all_unique_docs[content] in self.chunks[:3]:
+                    score += 10.0 # Huge boost
+                    
             fused_scores[content] = score
             
         ranked_docs = sorted(fused_scores.items(), key=lambda x: x[1], reverse=True)
