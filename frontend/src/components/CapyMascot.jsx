@@ -21,8 +21,8 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
 
   // Capybara animations
   const capyVariants = {
-    idle: { y: [0, -4, 0], transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' } },
-    peeking: { y: [15, -10, 15], transition: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' } },
+    idle: { y: 0, transition: { duration: 0.5 } },
+    peeking: { y: 0, transition: { duration: 0.5 } },
     typing: { y: 0, transition: { duration: 0.5 } }
   };
 
