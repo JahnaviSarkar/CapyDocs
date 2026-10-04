@@ -1,11 +1,11 @@
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from rank_bm25 import BM25Okapi
 
 class Retriever:
     def __init__(self, chunks):
         self.chunks = chunks
-        self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        self.embeddings = OllamaEmbeddings(model="nomic-embed-text")
         self.vectorstore = FAISS.from_documents(chunks, self.embeddings)
         self.faiss_retriever = self.vectorstore.as_retriever(search_kwargs={"k": 10})
         
