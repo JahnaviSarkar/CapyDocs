@@ -96,8 +96,13 @@ export default function Workspace({ session, onBack }) {
       }
       setMessages(prev => [...prev, { role: 'bot', text: ans, pages: data.pages_used }]);
     } catch (err) {
-      setMascotStatus('peeking');
-      setMessages(prev => [...prev, { role: 'error', text: err.message }]);
+      if (err.message.toLowerCase().includes("timed out")) {
+        setMascotStatus('sleepy');
+        setMessages(prev => [...prev, { role: 'error', text: "Papr fell asleep waiting for the answer. The question might be too complex." }]);
+      } else {
+        setMascotStatus('peeking');
+        setMessages(prev => [...prev, { role: 'error', text: err.message }]);
+      }
     } finally {
       setIsTyping(false);
     }
@@ -127,8 +132,13 @@ export default function Workspace({ session, onBack }) {
       triggerAnswering();
       setMessages(prev => [...prev, { role: 'bot', text: data.summary }]);
     } catch (err) {
-      setMascotStatus('peeking');
-      setMessages(prev => [...prev, { role: 'error', text: err.message }]);
+      if (err.message.toLowerCase().includes("timed out")) {
+        setMascotStatus('sleepy');
+        setMessages(prev => [...prev, { role: 'error', text: "Papr fell asleep waiting for the answer. The PDF might be too long." }]);
+      } else {
+        setMascotStatus('peeking');
+        setMessages(prev => [...prev, { role: 'error', text: err.message }]);
+      }
     } finally {
       setIsTyping(false);
     }

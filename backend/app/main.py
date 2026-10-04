@@ -41,6 +41,17 @@ MAX_SUMMARIES_PER_HOUR = int(os.getenv("MAX_SUMMARIES_PER_HOUR", "5"))
 MAX_PAGE_COUNT = int(os.getenv("MAX_PAGE_COUNT", "50"))
 MAX_CONCURRENT_SUMMARIES = int(os.getenv("MAX_CONCURRENT_SUMMARIES", "2"))
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "60"))
+SUMMARY_TIMEOUT_SECONDS = int(os.getenv("SUMMARY_TIMEOUT_SECONDS", "120"))
+TRUST_PROXY = os.getenv("TRUST_PROXY", "false").lower() == "true"
+
+def get_client_ip(request: Request) -> str:
+    # When deployed behind a proxy (like Render's load balancer), the direct client IP is the proxy's IP.
+    # The real client IP is appended to the X-Forwarded-For header. We only trust this header if TRUST_PROXY is true.
+    if TRUST_PROXY:
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            return forwarded_for.split(",")[0].strip()
+    return request.client.host if request.client else "127.0.0.1"
 
 class RateLimiter:
     def __init__(self):
@@ -77,7 +88,7 @@ def health_check():
 
 @app.post("/upload")
 async def upload_pdf(request: Request, file: UploadFile = File(...)):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     if not limiter.check_and_add(client_ip, limiter.uploads, MAX_UPLOADS_PER_HOUR):
         raise HTTPException(status_code=429, detail="Too many uploads. Please try again later.")
         
@@ -155,7 +166,7 @@ def sync_chat_logic(req: ChatRequest):
 
 @app.post("/chat")
 async def chat(req: ChatRequest, request: Request):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     if not limiter.check_and_add(client_ip, limiter.chats, MAX_CHATS_PER_HOUR):
         raise HTTPException(status_code=429, detail="Too many chat requests. Please try again later.")
         
@@ -185,7 +196,7 @@ def sync_summary_logic(req: SummaryRequest):
 async def summary(req: SummaryRequest, request: Request):
     global active_summaries
     
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     if not limiter.check_and_add(client_ip, limiter.summaries, MAX_SUMMARIES_PER_HOUR):
         raise HTTPException(status_code=429, detail="Too many summary requests. Please try again later.")
         
@@ -198,7 +209,7 @@ async def summary(req: SummaryRequest, request: Request):
         active_summaries += 1
         
     try:
-        return await asyncio.wait_for(run_in_threadpool(sync_summary_logic, req), timeout=REQUEST_TIMEOUT)
+        return await asyncio.wait_for(run_in_threadpool(sync_summary_logic, req), timeout=SUMMARY_TIMEOUT_SECONDS)
     except asyncio.TimeoutError:
         raise HTTPException(status_code=504, detail="Request timed out while generating summary.")
     except Exception as e:
