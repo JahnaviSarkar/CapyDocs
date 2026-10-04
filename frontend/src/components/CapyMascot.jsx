@@ -37,7 +37,7 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
       
       {/* Speech Bubble */}
       {showSpeech && (
-        <div className="absolute top-0 right-0 w-48 bg-white border-4 border-merlot rounded-2xl p-3 shadow-[4px_4px_0_#570301] z-30 transform translate-x-1/2 -translate-y-1/3">
+        <div className="absolute top-0 left-0 w-48 bg-white border-4 border-merlot rounded-2xl p-3 shadow-[4px_4px_0_#570301] z-30 transform -translate-x-1/3 -translate-y-1/3">
           <AnimatePresence mode="wait">
             <motion.p
               key={speechIndex}
@@ -50,8 +50,8 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
             </motion.p>
           </AnimatePresence>
           {/* Bubble tail */}
-          <div className="absolute -bottom-3 left-6 w-0 h-0 border-l-[10px] border-l-transparent border-t-[14px] border-t-merlot border-r-[10px] border-r-transparent" />
-          <div className="absolute -bottom-1.5 left-7 w-0 h-0 border-l-[6px] border-l-transparent border-t-[10px] border-t-white border-r-[6px] border-r-transparent" />
+          <div className="absolute -bottom-3 right-6 w-0 h-0 border-l-[10px] border-l-transparent border-t-[14px] border-t-merlot border-r-[10px] border-r-transparent" />
+          <div className="absolute -bottom-1.5 right-7 w-0 h-0 border-l-[6px] border-l-transparent border-t-[10px] border-t-white border-r-[6px] border-r-transparent" />
         </div>
       )}
 
