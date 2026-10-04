@@ -7,3 +7,7 @@ faiss-cpu
 sentence-transformers
 langchain-text-splitters
 
+rank_bm25
+
+langchain-huggingface
+
