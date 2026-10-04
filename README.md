@@ -9,6 +9,10 @@ CapyDocs is a beautiful, open-source "chat with your PDF" web application. It co
 - **Tailored Answers**: Choose a "purpose" (Student, Work, Research, General) to dynamically adjust the LLM's response style.
 - **Papr the Capybara**: A fully interactive SVG React mascot that reacts to your cursor, reads along while you upload, and gets impatient if you idle!
 
+## Screenshots
+*(Screenshots of Papr's various animated states will be placed here)*
+
+
 ## Architecture
 
 ```mermaid
