@@ -145,7 +145,7 @@ export default function Workspace({ session, onBack }) {
       {/* Right: Workspace */}
       <div className="flex-1 flex flex-col gap-4">
         {/* Top: Papr mascot */}
-        <div className="bg-secondary rounded-3xl border-merlot-3 shadow-[4px_4px_0_#570301] p-4 flex justify-between items-center relative">
+        <div className="bg-secondary rounded-3xl border-merlot-3 shadow-[4px_4px_0_#570301] p-4 min-h-[100px] flex justify-between items-center relative">
           <button 
             onClick={onBack}
             className="px-4 py-2 bg-white border-merlot-3 rounded-xl font-bold shadow-[2px_2px_0_#570301] hover:bg-gray-100"
@@ -153,8 +153,8 @@ export default function Workspace({ session, onBack }) {
             ← Back
           </button>
           
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">
+          <div className="absolute inset-0 flex items-end pb-2 justify-center pointer-events-none">
+            <div className="pointer-events-auto translate-y-2">
               <CapyMascot 
                 status={isTyping ? 'typing' : mascotStatus} 
                 showSpeech={!!speechText} 
