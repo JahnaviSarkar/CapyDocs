@@ -1,0 +1,31 @@
+import pytest
+from app.pdf_loader import remove_headers_footers
+from app.chunker import chunk_documents
+from app.retrieval import Retriever
+from langchain_core.documents import Document
+
+def test_header_cleaner():
+    docs = [
+        Document(page_content="CapyDocs Header\nThis is page 1.\nFooter 1", metadata={"page": 0}),
+        Document(page_content="CapyDocs Header\nThis is page 2.\nFooter 2", metadata={"page": 1}),
+        Document(page_content="CapyDocs Header\nThis is page 3.\nFooter 3", metadata={"page": 2}),
+    ]
+    cleaned = remove_headers_footers(docs)
+    assert "CapyDocs Header" not in cleaned[0].page_content
+    assert "This is page 1." in cleaned[0].page_content
+
+def test_chunker():
+    doc = Document(page_content="A" * 2000, metadata={"page": 0})
+    chunks = chunk_documents([doc])
+    assert len(chunks) > 1
+
+def test_retriever():
+    # Mock chunks
+    docs = [
+        Document(page_content="Apple is a fruit.", metadata={"page": 0}),
+        Document(page_content="Car is a vehicle.", metadata={"page": 0})
+    ]
+    retriever = Retriever(docs)
+    res = retriever.retrieve("fruit")
+    assert len(res) > 0
+    assert "Apple" in res[0].page_content
