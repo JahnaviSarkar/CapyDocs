@@ -75,19 +75,26 @@ export default function Dashboard({ onStart }) {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 md:p-8"
+      className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 relative"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <BackgroundEffects />
+
+      {/* Headline */}
+      <div className="text-center z-10 mb-8 md:mb-12">
+        <h1 className="text-5xl md:text-7xl font-extrabold text-merlot mb-4 drop-shadow-[2px_2px_0_#F7E594]">Chat with your PDFs.</h1>
+        <p className="text-xl md:text-2xl font-bold text-merlot opacity-80">Papr reads it so you don't have to.</p>
+      </div>
+
       <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-5xl z-10">
         <div className="flex-shrink-0 flex justify-center">
-          <CapyMascot status={isUploading ? 'typing' : isDragging ? 'peeking' : 'idle'} size={380} />
+          <CapyMascot status={isUploading ? 'typing' : isDragging ? 'peeking' : 'idle'} size={380} showSpeech={true} />
         </div>
         
         <div className="flex-1 flex flex-col gap-6 w-full max-w-md bg-white p-8 rounded-3xl border-merlot-3 shadow-[8px_8px_0_#570301]">
-        <h1 className="text-4xl font-bold">CapyDocs</h1>
+          {/* We remove the h1 CapyDocs title since we have a hero headline now */}
         
         <div className="flex flex-col gap-2">
           <label className="font-bold">What are you using this for?</label>
