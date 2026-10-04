@@ -7,3 +7,4 @@
 - After each task, give me: what changed, how to test it, and what is next.
 - If a library import breaks, prefer small code of our own over fragile framework classes.
 - Keep a docs/evaluation.md table of test questions and results.
+- **Safe Process Handling**: NEVER kill processes by name (e.g., no `Stop-Process -Name` or `taskkill /IM`). Only stop the exact Process IDs (PIDs) that you have explicitly started yourself, and always specify which ones.

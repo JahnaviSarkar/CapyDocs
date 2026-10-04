@@ -72,6 +72,14 @@ VITE_API_URL=http://127.0.0.1:8000.
     .\start-dev.ps1
 Then open http://localhost:5173 in your browser.
 
+### Troubleshooting
+**[WinError 3] The system cannot find the path specified (during pip install):**
+Windows has a legacy 260-character limit on file paths. If you cloned CapyDocs to a deep folder (like your Desktop), some Python packages won't install. 
+**Solution:**
+Clone the repository into a shorter path, such as `C:\dev\CapyDocs`.
+*Optionally*, you can also enable long paths in Git and Windows:
+`git config --global core.longpaths true`
+
 ## Privacy Note
 CapyDocs sends your question and the most relevant excerpts of your PDF (not
 the whole file) to the model to produce an answer. The Summary feature is
@@ -118,3 +126,7 @@ Set these on your backend host:
 
 ### Privacy Note
 **Caution**: When deployed, uploaded PDFs and chat questions are sent externally to the model provider (Ollama Cloud) for processing. Do not upload sensitive, personal, or confidential documents.
+
+## Credits
+- **Fonts**: [Fredoka](https://fontsource.org/fonts/fredoka), [Nunito](https://fontsource.org/fonts/nunito), and [Pixelify Sans](https://fontsource.org/fonts/pixelify-sans) are used under the SIL Open Font License.
+- **Mascot Art**: The pixel-art capybara sprites (`capy_directions.png` and `capy_reactions.png`) have an unknown source and license. If you know the original artist, please open an issue so we can properly credit them!
