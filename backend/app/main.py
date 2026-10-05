@@ -190,7 +190,7 @@ async def chat(req: ChatRequest, request: Request):
             raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key.")
         if "connection" in error_msg or "groq" in error_msg or "validation" in error_msg:
             raise HTTPException(status_code=503, detail=f"AI Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="An error occurred while generating the answer.")
+        raise HTTPException(status_code=500, detail=f"An error occurred while generating the answer: {str(e)}")
 
 def sync_summary_logic(req: SummaryRequest):
     store = document_store[req.doc_id]
@@ -225,7 +225,7 @@ async def summary(req: SummaryRequest, request: Request):
             raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key.")
         if "connection" in error_msg or "groq" in error_msg or "validation" in error_msg:
             raise HTTPException(status_code=503, detail=f"AI Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="An error occurred while generating the summary.")
+        raise HTTPException(status_code=500, detail=f"An error occurred while generating the summary: {str(e)}")
     finally:
         async with active_summaries_lock:
             active_summaries -= 1
