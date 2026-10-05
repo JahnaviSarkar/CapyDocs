@@ -21,7 +21,7 @@ export default function Dashboard({ onStart, timeoutError }) {
   const [healthStatus, setHealthStatus] = useState({ status: 'checking', model: null });
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/health')
+    fetch(`${import.meta.env.VITE_API_URL}/health`)
       .then(res => res.json())
       .then(data => setHealthStatus({ status: 'up', model: data.model_name || data.model }))
       .catch(() => setHealthStatus({ status: 'down', model: null }));
@@ -267,6 +267,13 @@ export default function Dashboard({ onStart, timeoutError }) {
           <span className="px-3 py-1.5 bg-[#F5BAD5] border border-merlot rounded-lg text-xs font-bold text-merlot">PDF kept in memory, not saved</span>
           <span className="px-3 py-1.5 bg-[#F7E594] border border-merlot rounded-lg text-xs font-bold text-merlot">Open source (MIT)</span>
         </div>
+      </div>
+
+      {/* Privacy Notice */}
+      <div className="mt-6 z-10 text-center max-w-2xl px-4">
+        <p className="text-merlot/80 text-xs font-bold border border-merlot/20 bg-[#F7E594]/30 py-2 px-4 rounded-xl shadow-sm">
+          Your PDF's text is sent to an AI model to answer questions. Please don't upload private documents.
+        </p>
       </div>
 
       {/* Footer */}
