@@ -5,7 +5,7 @@ pytest
 pydantic
 langchain-community
 langchain-text-splitters
-langchain-ollama
+langchain-groq
 rank_bm25
 pypdf
 faiss-cpu

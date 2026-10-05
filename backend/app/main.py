@@ -187,9 +187,9 @@ async def chat(req: ChatRequest, request: Request):
     except Exception as e:
         error_msg = str(e).lower()
         if "unauthorized" in error_msg or "401" in error_msg:
-            raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key for Ollama Cloud.")
-        if "connection" in error_msg or "ollama" in error_msg:
-            raise HTTPException(status_code=503, detail="The AI model service (Ollama) is currently unavailable. Please ensure it is running.")
+            raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key.")
+        if "connection" in error_msg or "groq" in error_msg:
+            raise HTTPException(status_code=503, detail="The AI model service is currently unavailable. Please check your API key and connection.")
         raise HTTPException(status_code=500, detail="An error occurred while generating the answer.")
 
 def sync_summary_logic(req: SummaryRequest):
@@ -222,9 +222,9 @@ async def summary(req: SummaryRequest, request: Request):
     except Exception as e:
         error_msg = str(e).lower()
         if "unauthorized" in error_msg or "401" in error_msg:
-            raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key for Ollama Cloud.")
-        if "connection" in error_msg or "ollama" in error_msg:
-            raise HTTPException(status_code=503, detail="The AI model service (Ollama) is currently unavailable. Please ensure it is running.")
+            raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key.")
+        if "connection" in error_msg or "groq" in error_msg:
+            raise HTTPException(status_code=503, detail="The AI model service is currently unavailable. Please check your API key and connection.")
         raise HTTPException(status_code=500, detail="An error occurred while generating the summary.")
     finally:
         async with active_summaries_lock:

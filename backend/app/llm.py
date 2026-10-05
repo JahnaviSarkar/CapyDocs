@@ -1,19 +1,14 @@
 import os
-from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 
 def get_llm():
-    model_name = os.getenv("OLLAMA_MODEL", "gemma4:cloud")
-    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    api_key = os.getenv("OLLAMA_API_KEY")
+    # Use Groq's fast LLaMA 3 or Gemma models, defaulting to llama3-8b-8192
+    model_name = os.getenv("OLLAMA_MODEL", "llama3-8b-8192")
+    api_key = os.getenv("OLLAMA_API_KEY") # We can keep the same env variable name for convenience
     
-    client_kwargs = {}
-    if api_key:
-        client_kwargs["headers"] = {"Authorization": f"Bearer {api_key}"}
-        
-    return ChatOllama(
+    return ChatGroq(
         model=model_name,
-        base_url=base_url,
-        client_kwargs=client_kwargs
+        api_key=api_key
     )
 
 def generate_answer(llm, relevant_docs, question, purpose="general"):
