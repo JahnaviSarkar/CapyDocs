@@ -12,3 +12,5 @@ Write-Host "Starting CapyDocs Frontend in a new window..."
 Start-Process powershell -WorkingDirectory $PSScriptRoot -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"
 
 Write-Host "Done! Close the popup windows to stop the servers."
+Write-Host "Backend URL: http://127.0.0.1:8000" -ForegroundColor Cyan
+Write-Host "Frontend URL: http://127.0.0.1:5173" -ForegroundColor Green

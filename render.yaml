@@ -4,7 +4,12 @@ services:
     env: docker
     plan: free
     rootDir: backend
+    healthCheckPath: /health
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
+      - key: TRUST_PROXY
+        value: "true"
       - key: OLLAMA_API_KEY
         sync: false
       - key: OLLAMA_BASE_URL
