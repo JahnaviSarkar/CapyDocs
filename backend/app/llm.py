@@ -2,8 +2,8 @@ import os
 from langchain_groq import ChatGroq
 
 def get_llm():
-    # Use Groq's fast LLaMA 3 or Gemma models, defaulting to llama3-8b-8192
-    model_name = os.getenv("GROQ_MODEL") or os.getenv("OLLAMA_MODEL", "llama3-8b-8192")
+    # Use Groq's fast LLaMA 3.1 or Gemma models, defaulting to llama-3.1-8b-instant
+    model_name = os.getenv("GROQ_MODEL") or os.getenv("OLLAMA_MODEL", "llama-3.1-8b-instant")
     api_key = os.getenv("GROQ_API_KEY") or os.getenv("OLLAMA_API_KEY")
     
     return ChatGroq(
