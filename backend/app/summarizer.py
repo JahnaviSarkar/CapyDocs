@@ -9,9 +9,9 @@ def generate_summary(llm, chunks, purpose="general"):
         
     full_text = "\n".join([c.page_content for c in chunks])
     
-    # Truncate to ~18,000 characters to safely stay under Groq's Free Tier 6,000 TPM limit
-    if len(full_text) > 18000:
-        full_text = full_text[:18000] + "... [Text truncated to prevent exceeding free AI limits]"
+    # Truncate to ~4,000 characters to absolutely guarantee it stays under Groq's strict Free Tier 6,000 TPM limit
+    if len(full_text) > 4000:
+        full_text = full_text[:4000] + "... [Text truncated to prevent exceeding free AI limits]"
         
     prompt = f"Create a cohesive final summary of this document. {purpose_prompt}\n\nDocument text:\n{full_text}"
     
