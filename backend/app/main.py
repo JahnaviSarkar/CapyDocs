@@ -188,8 +188,8 @@ async def chat(req: ChatRequest, request: Request):
         error_msg = str(e).lower()
         if "unauthorized" in error_msg or "401" in error_msg:
             raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key.")
-        if "connection" in error_msg or "groq" in error_msg:
-            raise HTTPException(status_code=503, detail="The AI model service is currently unavailable. Please check your API key and connection.")
+        if "connection" in error_msg or "groq" in error_msg or "validation" in error_msg:
+            raise HTTPException(status_code=503, detail=f"AI Error: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while generating the answer.")
 
 def sync_summary_logic(req: SummaryRequest):
@@ -223,8 +223,8 @@ async def summary(req: SummaryRequest, request: Request):
         error_msg = str(e).lower()
         if "unauthorized" in error_msg or "401" in error_msg:
             raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key.")
-        if "connection" in error_msg or "groq" in error_msg:
-            raise HTTPException(status_code=503, detail="The AI model service is currently unavailable. Please check your API key and connection.")
+        if "connection" in error_msg or "groq" in error_msg or "validation" in error_msg:
+            raise HTTPException(status_code=503, detail=f"AI Error: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while generating the summary.")
     finally:
         async with active_summaries_lock:
