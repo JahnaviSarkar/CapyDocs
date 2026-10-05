@@ -16,6 +16,9 @@ from app.chunker import chunk_documents
 from app.retrieval import Retriever
 from app.llm import get_llm, generate_answer
 from app.summarizer import generate_summary
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(title="CapyDocs API")
 
