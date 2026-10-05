@@ -7,13 +7,13 @@ def generate_summary(llm, chunks, purpose="general"):
     elif purpose == "research":
         purpose_prompt = "Keep it detailed and academic."
         
-    section_summaries = []
-    for chunk in chunks:
-        prompt = f"Summarize the following text concisely. {purpose_prompt}\n\n{chunk.page_content}"
-        res = llm.invoke(prompt)
-        section_summaries.append(res.content)
+    full_text = "\n".join([c.page_content for c in chunks])
     
-    combined = "\n".join(section_summaries)
-    final_prompt = f"Create a cohesive final summary from these section summaries. {purpose_prompt}\n\n{combined}"
-    final_res = llm.invoke(final_prompt)
+    # Truncate to ~18,000 characters to safely stay under Groq's Free Tier 6,000 TPM limit
+    if len(full_text) > 18000:
+        full_text = full_text[:18000] + "... [Text truncated to prevent exceeding free AI limits]"
+        
+    prompt = f"Create a cohesive final summary of this document. {purpose_prompt}\n\nDocument text:\n{full_text}"
+    
+    final_res = llm.invoke(prompt)
     return final_res.content
