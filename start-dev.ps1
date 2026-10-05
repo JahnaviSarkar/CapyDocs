@@ -6,9 +6,9 @@ if (-not $ollama_running) {
 }
 
 Write-Host "Starting CapyDocs Backend in a new window..."
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; ..\.venv\Scripts\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
+Start-Process powershell -WorkingDirectory $PSScriptRoot -ArgumentList "-NoExit", "-Command", "cd backend; ..\.venv\Scripts\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000"
 
 Write-Host "Starting CapyDocs Frontend in a new window..."
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"
+Start-Process powershell -WorkingDirectory $PSScriptRoot -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"
 
 Write-Host "Done! Close the popup windows to stop the servers."
