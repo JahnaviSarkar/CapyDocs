@@ -124,7 +124,7 @@ export default function Dashboard({ onStart, timeoutError }) {
           <div className={`w-2.5 h-2.5 rounded-full ${healthStatus.status === 'up' ? 'bg-green-500' : 'bg-red-500'}`} />
           <span className="text-xs font-bold text-merlot">
             {healthStatus.status === 'up' 
-              ? `Papr is awake ${healthStatus.model ? `(${healthStatus.model})` : ''}` 
+              ? "Papr is awake" 
               : "Papr is napping, start the server"}
           </span>
         </div>
