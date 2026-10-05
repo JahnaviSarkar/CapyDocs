@@ -2,8 +2,8 @@ import os
 from langchain_groq import ChatGroq
 
 def get_llm():
-    # Force the correct Groq model, ignoring any old env variables the user might have stuck in Render
-    model_name = "llama-3.1-8b-instant"
+    # Use standard Mixtral model that is always available
+    model_name = os.getenv("GROQ_MODEL") or "mixtral-8x7b-32768"
     api_key = os.getenv("GROQ_API_KEY") or os.getenv("OLLAMA_API_KEY")
     
     return ChatGroq(
