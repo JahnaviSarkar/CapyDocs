@@ -192,12 +192,12 @@ async def chat(req: ChatRequest, request: Request):
             raise HTTPException(status_code=503, detail=f"AI Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred while generating the answer: {str(e)}")
 
-def sync_summary_logic(req: SummaryRequest):
+async def async_summary_logic(req: SummaryRequest):
     store = document_store[req.doc_id]
     chunks = store["chunks"]
     llm = get_llm()
-    sum_text = generate_summary(llm, chunks, req.purpose)
-    return {"summary": sum_text}
+    sum_text, truncated = await generate_summary(llm, chunks, req.purpose)
+    return {"summary": sum_text, "truncated": truncated}
 
 @app.post("/summary")
 async def summary(req: SummaryRequest, request: Request):
@@ -216,16 +216,17 @@ async def summary(req: SummaryRequest, request: Request):
         active_summaries += 1
         
     try:
-        return await asyncio.wait_for(run_in_threadpool(sync_summary_logic, req), timeout=SUMMARY_TIMEOUT_SECONDS)
+        return await asyncio.wait_for(async_summary_logic(req), timeout=SUMMARY_TIMEOUT_SECONDS)
     except asyncio.TimeoutError:
-        raise HTTPException(status_code=504, detail="Request timed out while generating summary.")
+        raise HTTPException(status_code=504, detail="Request timed out while generating summary. Try a shorter PDF.")
     except Exception as e:
+        import traceback
+        import logging
+        logging.getLogger(__name__).error("Summary failed: " + traceback.format_exc())
         error_msg = str(e).lower()
-        if "unauthorized" in error_msg or "401" in error_msg:
-            raise HTTPException(status_code=401, detail="Authentication failed: Invalid or missing API key.")
-        if "connection" in error_msg or "groq" in error_msg or "validation" in error_msg:
-            raise HTTPException(status_code=503, detail=f"AI Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"An error occurred while generating the summary: {str(e)}")
+        if "429" in error_msg or "rate limit" in error_msg or "unauthorized" in error_msg or "401" in error_msg or "connection" in error_msg or "groq" in error_msg:
+             raise HTTPException(status_code=503, detail="The AI model service is struggling right now. Please try again.")
+        raise HTTPException(status_code=503, detail=f"Failed to generate summary due to a server error. Try again.")
     finally:
         async with active_summaries_lock:
             active_summaries -= 1

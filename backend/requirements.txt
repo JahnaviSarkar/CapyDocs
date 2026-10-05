@@ -11,3 +11,6 @@ pypdf
 faiss-cpu
 fastembed
 python-dotenv
+tenacity
+psutil
+pytest-asyncio
