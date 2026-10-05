@@ -10,7 +10,7 @@ CapyDocs is a beautiful, open-source "chat with your PDF" web application. It co
 - **Intelligent RAG**: Features Hybrid BM25 + Vector Search with Reciprocal Rank Fusion (RRF), map-reduce summarization, and positional heuristics.
 - **Smart Sourcing**: Answers include precise page references, allowing you to instantly jump to the source in the built-in PDF viewer.
 - **Tailored Answers**: Choose a "purpose" (Student, Work, Research, General) to dynamically adjust the LLM's response style.
-- **Papr the Capybara**: A fully interactive SVG React mascot that reacts to your cursor, reads along while you upload, and gets impatient if you idle!
+- **Papr the Capybara**: A pixel-art capybara mascot that reacts to your cursor using sprite sheets, reads along while you upload, and gets impatient if you idle!
 
 ## Screenshots
 *(Screenshots of Papr's various animated states will be placed here)*
