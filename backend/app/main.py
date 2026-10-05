@@ -111,6 +111,8 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)):
     try:
         documents = load_and_clean_pdf(tmp_path)
         chunks = chunk_documents(documents)
+        if not chunks:
+            raise HTTPException(status_code=400, detail="The PDF contains no readable text. Scanned PDFs are not supported.")
         retriever = Retriever(chunks)
         
         document_store[doc_id] = {
@@ -129,6 +131,8 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)):
             "page_count": len(pages),
             "chunk_count": len(chunks)
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
     finally:
