@@ -5,7 +5,7 @@ from rank_bm25 import BM25Okapi
 class Retriever:
     def __init__(self, chunks):
         self.chunks = chunks
-        self.mode = os.getenv("EMBEDDING_BACKEND", "fastembed").lower()
+        self.mode = "bm25" # Hardcode to bm25 to guarantee fast uploads on Render Free Tier
         
         tokenized_corpus = [doc.page_content.lower().split() for doc in chunks]
         self.bm25 = BM25Okapi(tokenized_corpus)
