@@ -144,8 +144,11 @@ export default function Workspace({ session, onBack }) {
       
       triggerAnswering();
       let finalText = data.summary;
+      if (data.is_fallback) {
+        finalText = "⚠️ **AI summary unavailable, showing the first sentences:**\n\n" + data.summary.replace("Fallback Summary (AI service unavailable):\n\n", "");
+      }
       if (data.truncated) {
-        finalText += "\n\n*(Note: This PDF was very long, so only the beginning was summarized to fit within processing limits.)*";
+        finalText += "\n\n*(Note: This PDF was very long, so only the first 4,000 words were summarized to fit within processing limits.)*";
       }
       setMessages(prev => [...prev, { role: 'bot', text: finalText }]);
     } catch (err) {
