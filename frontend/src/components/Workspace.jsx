@@ -124,20 +124,25 @@ export default function Workspace({ session, onBack }) {
       
       const data = await res.json();
       if (res.status === 410) {
-        onBack(data.detail || "Session expired");
+        setMascotStatus('sleepy');
+        onBack("I dozed off, please upload again");
         return;
       }
       if (!res.ok) throw new Error(data.detail || 'Error generating summary');
       
       triggerAnswering();
-      setMessages(prev => [...prev, { role: 'bot', text: data.summary }]);
+      let finalText = data.summary;
+      if (data.truncated) {
+        finalText += "\n\n*(Note: This PDF was very long, so only the beginning was summarized to fit within processing limits.)*";
+      }
+      setMessages(prev => [...prev, { role: 'bot', text: finalText }]);
     } catch (err) {
       if (err.message.toLowerCase().includes("timed out")) {
         setMascotStatus('sleepy');
-        setMessages(prev => [...prev, { role: 'error', text: "Papr fell asleep waiting for the answer. The PDF might be too long." }]);
+        setMessages(prev => [...prev, { role: 'error', text: "Papr fell asleep waiting for the answer. The PDF might be too long.", retry: 'summary' }]);
       } else {
         setMascotStatus('peeking');
-        setMessages(prev => [...prev, { role: 'error', text: err.message }]);
+        setMessages(prev => [...prev, { role: 'error', text: err.message, retry: 'summary' }]);
       }
     } finally {
       setIsTyping(false);
@@ -209,6 +214,16 @@ export default function Workspace({ session, onBack }) {
                           Page {p}
                         </button>
                       ))}
+                    </div>
+                  )}
+                  {msg.retry && (
+                    <div className="mt-3 pt-2 border-t border-merlot border-opacity-20">
+                      <button 
+                        onClick={msg.retry === 'summary' ? handleSummary : undefined}
+                        className="px-3 py-1 bg-white text-xs font-bold border-merlot-3 rounded shadow-[1px_1px_0_#570301] hover:bg-yellow-200 transition-colors"
+                      >
+                        Try again
+                      </button>
                     </div>
                   )}
                 </div>
