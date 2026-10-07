@@ -17,10 +17,20 @@ from app.retrieval import Retriever
 from app.llm import get_llm, generate_answer
 from app.summarizer import generate_summary
 from dotenv import load_dotenv
+from app.llm import check_model_exists
 
 load_dotenv()
 
 app = FastAPI(title="CapyDocs API")
+
+@app.on_event("startup")
+def on_startup():
+    is_valid, msg = check_model_exists()
+    import logging
+    if not is_valid:
+        logging.getLogger(__name__).warning(f"Model validation failed on startup: {msg}")
+    else:
+        logging.getLogger(__name__).info(f"Model validation passed: {msg}")
 
 origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173")
 origins = [o.strip() for o in origins_str.split(",") if o.strip()]
@@ -85,9 +95,18 @@ class SummaryRequest(BaseModel):
 
 @app.get("/health")
 def health_check():
-    model_name = os.getenv("OLLAMA_MODEL", "gemma4:cloud")
-    retrieval_mode = os.getenv("EMBEDDING_BACKEND", "fastembed")
-    return {"status": "up", "model": model_name, "retrieval_mode": retrieval_mode}
+    provider = os.getenv("LLM_PROVIDER", "unknown")
+    model_name = os.getenv("LLM_MODEL", "unknown")
+    retrieval_mode = os.getenv("EMBEDDING_BACKEND", "bm25")
+    is_valid, msg = check_model_exists()
+    return {
+        "status": "up", 
+        "provider": provider,
+        "model": model_name, 
+        "retrieval_mode": retrieval_mode,
+        "model_status": msg,
+        "model_valid": is_valid
+    }
 
 @app.post("/upload")
 async def upload_pdf(request: Request, file: UploadFile = File(...)):

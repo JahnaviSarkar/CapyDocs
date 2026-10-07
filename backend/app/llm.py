@@ -1,50 +1,65 @@
 import os
-from langchain_groq import ChatGroq
-from groq import Groq
+import requests
 
 def get_llm():
-    # Use llama-3.3-70b-versatile as first preference
-    model_name = os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile"
-    api_key = os.getenv("GROQ_API_KEY") or os.getenv("OLLAMA_API_KEY")
+    provider = os.getenv("LLM_PROVIDER", "").lower()
+    model_name = os.getenv("LLM_MODEL")
     
-    return ChatGroq(
-        model=model_name,
-        api_key=api_key
-    )
+    if not provider or not model_name:
+        raise ValueError("LLM_PROVIDER and LLM_MODEL environment variables must be set.")
+        
+    if provider == "groq":
+        from langchain_groq import ChatGroq
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY is not set.")
+        return ChatGroq(model=model_name, api_key=api_key)
+    elif provider == "ollama":
+        from langchain_community.chat_models import ChatOllama
+        base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        return ChatOllama(model=model_name, base_url=base_url)
+    else:
+        raise ValueError(f"Unsupported LLM_PROVIDER: {provider}")
 
 def safe_invoke(llm, prompt):
-    try:
-        return llm.invoke(prompt)
-    except Exception as e:
-        error_msg = str(e).lower()
-        if "404" in error_msg or "not_found" in error_msg or "model" in error_msg:
-            api_key = os.getenv("GROQ_API_KEY") or os.getenv("OLLAMA_API_KEY")
+    return llm.invoke(prompt)
+
+def check_model_exists():
+    provider = os.getenv("LLM_PROVIDER", "").lower()
+    model_name = os.getenv("LLM_MODEL")
+    if not provider or not model_name:
+        return False, "LLM_PROVIDER or LLM_MODEL not set"
+        
+    if provider == "groq":
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            return False, "GROQ_API_KEY missing"
+        try:
+            headers = {"Authorization": f"Bearer {api_key}"}
+            res = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=5)
+            if res.status_code == 200:
+                models = [m["id"] for m in res.json().get("data", [])]
+                if model_name in models:
+                    return True, f"{model_name} is available on Groq"
+                return False, f"{model_name} not found in Groq models"
+            return False, f"Groq API error: {res.status_code}"
+        except Exception as e:
+            return False, f"Groq connection error: {str(e)}"
             
-            # Dynamic fallback
-            try:
-                client = Groq(api_key=api_key)
-                models = client.models.list().data
-                # Find an active text model
-                active_models = [m.id for m in models if getattr(m, 'active', True) and 'vision' not in m.id.lower() and 'whisper' not in m.id.lower()]
-                if active_models:
-                    for fallback_model in active_models:
-                        try:
-                            fallback_llm = ChatGroq(model=fallback_model, api_key=api_key)
-                            return fallback_llm.invoke(prompt)
-                        except Exception:
-                            continue
-            except Exception:
-                pass
-                
-            # Static fallback
-            fallback_models = ["qwen-2.5-32b", "deepseek-r1-distill-llama-70b", "mixtral-8x7b-32768"]
-            for fallback_model in fallback_models:
-                try:
-                    fallback_llm = ChatGroq(model=fallback_model, api_key=api_key)
-                    return fallback_llm.invoke(prompt)
-                except Exception:
-                    continue
-        raise e
+    elif provider == "ollama":
+        base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        try:
+            res = requests.get(f"{base_url}/api/tags", timeout=5)
+            if res.status_code == 200:
+                models = [m["name"] for m in res.json().get("models", [])]
+                if model_name in models or f"{model_name}:latest" in models:
+                    return True, f"{model_name} is available on Ollama"
+                return False, f"{model_name} not found in Ollama models"
+            return False, f"Ollama API error: {res.status_code}"
+        except Exception as e:
+            return False, f"Ollama connection error: {str(e)}"
+    
+    return False, f"Unsupported provider {provider}"
 
 def generate_answer(llm, relevant_docs, question, purpose="general"):
     context = ""
