@@ -73,12 +73,11 @@ async def test_generate_summary_concurrency(mock_llm):
 
 @pytest.mark.asyncio
 async def test_generate_summary_truncation(mock_llm):
-    chunks = [MockChunk("test") for _ in range(100)]
+    chunks = [MockChunk("word " * 50) for _ in range(100)]
     mock_res = MagicMock()
     mock_res.content = "summary"
     mock_llm.ainvoke.return_value = mock_res
     
-    with patch('app.summarizer.SUMMARY_MAX_CHUNKS', 50):
-        result, truncated = await generate_summary(mock_llm, chunks)
+    result, truncated = await generate_summary(mock_llm, chunks)
         
     assert truncated is True

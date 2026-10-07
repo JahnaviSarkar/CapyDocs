@@ -52,8 +52,9 @@ def test_summary_timeout():
             client = TestClient(my_app)
             response = client.post("/summary", json={"doc_id": "fake_doc", "purpose": "general"})
             
-            assert response.status_code == 504
-            assert "timed out" in response.json()["detail"].lower()
+            assert response.status_code == 200
+            assert response.json()["is_fallback"] is True
+            assert "AI service unavailable" in response.json()["summary"]
             
     # Restore
     main_module.SUMMARY_TIMEOUT_SECONDS = old_timeout
