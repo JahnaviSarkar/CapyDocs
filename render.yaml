@@ -10,14 +10,14 @@ services:
     envVars:
       - key: TRUST_PROXY
         value: "true"
-      - key: OLLAMA_API_KEY
+      - key: GROQ_API_KEY
         sync: false
-      - key: OLLAMA_BASE_URL
-        value: "https://ollama.com"
-      - key: OLLAMA_MODEL
-        value: "gemma4:cloud"
+      - key: LLM_PROVIDER
+        value: "groq"
+      - key: LLM_MODEL
+        value: "llama-3.3-70b-versatile"
       - key: EMBEDDING_BACKEND
-        value: "fastembed"
+        value: "bm25"
       - key: CORS_ORIGINS
         sync: false
       - key: MAX_UPLOADS_PER_HOUR
