@@ -284,7 +284,6 @@ export default function Dashboard({ onStart, timeoutError }) {
         <div className="flex flex-wrap justify-center gap-3">
           <span className="px-3 py-1.5 bg-[#BAD6FD] border border-merlot rounded-lg text-xs font-bold text-merlot">Cites page numbers</span>
           <span className="px-3 py-1.5 bg-[#F5BAD5] border border-merlot rounded-lg text-xs font-bold text-merlot">PDF kept in memory, not saved</span>
-          <span className="px-3 py-1.5 bg-[#F7E594] border border-merlot rounded-lg text-xs font-bold text-merlot">Open source (MIT)</span>
         </div>
       </div>
 
