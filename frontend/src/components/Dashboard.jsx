@@ -20,10 +20,10 @@ export default function Dashboard({ onStart, timeoutError }) {
   const [isDragging, setIsDragging] = useState(false);
   const [healthStatus, setHealthStatus] = useState({ status: 'checking', model: null });
 
-  const [mascotSize, setMascotSize] = useState(window.innerWidth < 768 ? 128 : 192);
+  const [mascotSize, setMascotSize] = useState(window.innerWidth < 768 ? 128 : 380);
 
   useEffect(() => {
-    const handleResize = () => setMascotSize(window.innerWidth < 768 ? 128 : 192);
+    const handleResize = () => setMascotSize(window.innerWidth < 768 ? 128 : 380);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
