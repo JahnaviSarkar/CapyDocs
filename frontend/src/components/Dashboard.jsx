@@ -20,11 +20,31 @@ export default function Dashboard({ onStart, timeoutError }) {
   const [isDragging, setIsDragging] = useState(false);
   const [healthStatus, setHealthStatus] = useState({ status: 'checking', model: null });
 
+  const [mascotSize, setMascotSize] = useState(window.innerWidth < 768 ? 128 : 192);
+
   useEffect(() => {
+    const handleResize = () => setMascotSize(window.innerWidth < 768 ? 128 : 192);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsWakingUp(true);
+    }, 5000);
+
     fetch(`${import.meta.env.VITE_API_URL}/health`)
       .then(res => res.json())
-      .then(data => setHealthStatus({ status: 'up', model: data.model_name || data.model }))
-      .catch(() => setHealthStatus({ status: 'down', model: null }));
+      .then(data => {
+        clearTimeout(timer);
+        setIsWakingUp(false);
+        setHealthStatus({ status: 'up', model: data.model_name || data.model });
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        setIsWakingUp(false);
+        setHealthStatus({ status: 'down', model: null });
+      });
   }, []);
 
   const handleDragOver = (e) => {
@@ -118,7 +138,6 @@ export default function Dashboard({ onStart, timeoutError }) {
     >
       <BackgroundEffects />
 
-      {/* Status Pill */}
       <div className="absolute top-4 right-4 md:right-8 z-50 flex flex-col gap-2">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-merlot shadow-[2px_2px_0_#570301]">
           <div className={`w-2.5 h-2.5 rounded-full ${healthStatus.status === 'up' ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -128,12 +147,6 @@ export default function Dashboard({ onStart, timeoutError }) {
               : "Papr is napping, start the server"}
           </span>
         </div>
-        
-        {isWakingUp && (
-          <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-highlight border-2 border-merlot shadow-[2px_2px_0_#570301] animate-pulse">
-            <span className="text-xs font-bold text-merlot">Papr is waking up...</span>
-          </div>
-        )}
       </div>
 
       {/* Headline */}
@@ -143,13 +156,19 @@ export default function Dashboard({ onStart, timeoutError }) {
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-5xl z-10">
-        <div className="flex-shrink-0 flex justify-center">
+        <div className="flex-shrink-0 flex flex-col items-center gap-4 justify-center">
           <CapyMascot 
             status={isUploading ? 'typing' : isDragging ? 'peeking' : timeoutError ? 'sleepy' : 'idle'} 
-            size={380} 
+            size={mascotSize} 
             showSpeech={true} 
             speechText={timeoutError ? "I dozed off, please upload again" : null} 
           />
+          {isWakingUp && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-highlight border-2 border-merlot shadow-[2px_2px_0_#570301] animate-pulse text-center max-w-[200px]">
+              <div className="w-4 h-4 rounded-full border-2 border-merlot border-t-transparent animate-spin flex-shrink-0"></div>
+              <span className="text-xs font-bold text-merlot">Waking up cloud server (takes ~30s on free tier)...</span>
+            </div>
+          )}
         </div>
         
         <div className="flex-1 flex flex-col gap-6 w-full max-w-md bg-white p-8 rounded-3xl border-merlot-3 shadow-[8px_8px_0_#570301]">

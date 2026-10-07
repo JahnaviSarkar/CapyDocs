@@ -202,7 +202,7 @@ async def async_summary_logic(req: SummaryRequest):
     chunks = store["chunks"]
     llm = get_llm()
     sum_text, truncated = await generate_summary(llm, chunks, req.purpose)
-    return {"summary": sum_text, "truncated": truncated}
+    return {"summary": sum_text, "truncated": truncated, "is_fallback": False}
 
 @app.post("/summary")
 async def summary(req: SummaryRequest, request: Request):
@@ -225,16 +225,20 @@ async def summary(req: SummaryRequest, request: Request):
     except Exception as e:
         import traceback
         import logging
+        import re
         logging.getLogger(__name__).error(f"Summary error: {str(e)} " + traceback.format_exc())
         
         store = document_store.get(req.doc_id)
-        mock_text = ""
+        fallback_text = ""
         if store and store.get("chunks"):
-            mock_text = store["chunks"][0].page_content[:300].replace('\n', ' ')
+            full_text = " ".join([c.page_content for c in store["chunks"]])
+            sentences = re.split(r'(?<=[.!?]) +', full_text)
+            fallback_text = " ".join(sentences[:5])
             
         return {
-            "summary": f"Summary successfully generated: [Extracted key points: {mock_text}...] (Note: The AI service is currently experiencing high load or timeouts. This is a graceful fallback summary to keep the demo functional.)",
-            "truncated": False
+            "summary": f"Fallback Summary (AI service unavailable):\n\n{fallback_text}...",
+            "truncated": False,
+            "is_fallback": True
         }
     finally:
         async with active_summaries_lock:

@@ -66,24 +66,24 @@ async def generate_summary(llm, chunks, purpose="general"):
         purpose_prompt = "Keep it detailed and academic."
         
     truncated = False
-    if len(chunks) > SUMMARY_MAX_CHUNKS:
-        chunks = chunks[:SUMMARY_MAX_CHUNKS]
+    full_text = " ".join([c.page_content for c in chunks])
+    words = full_text.split()
+    
+    if len(words) > 4000:
+        words = words[:4000]
+        full_text = " ".join(words)
         truncated = True
 
     batches = []
-    current_batch = []
-    current_len = 0
-    for chunk in chunks:
-        l = len(chunk.page_content)
-        if current_len + l > 3000 and current_batch:
-            batches.append("\n".join(current_batch))
-            current_batch = [chunk.page_content]
-            current_len = l
+    current_batch_str = ""
+    for word in words:
+        if len(current_batch_str) + len(word) > 3000 and current_batch_str:
+            batches.append(current_batch_str)
+            current_batch_str = word + " "
         else:
-            current_batch.append(chunk.page_content)
-            current_len += l
-    if current_batch:
-        batches.append("\n".join(current_batch))
+            current_batch_str += word + " "
+    if current_batch_str:
+        batches.append(current_batch_str.strip())
 
     sem = asyncio.Semaphore(SUMMARY_CONCURRENCY)
     
@@ -107,11 +107,7 @@ async def generate_summary(llm, chunks, purpose="general"):
             final_text = final_res.content
     except Exception as e:
         logger.error("Error during summarization", exc_info=True)
-        # Graceful degradation
-        mock_text = ""
-        if batches:
-            mock_text = batches[0][:300].replace('\n', ' ')
-        final_text = f"Successfully generated summary: [Extracted key points: {mock_text}...] (Note: The AI service is currently experiencing high load or errors. This is a graceful fallback summary to keep the demo functional.)"
+        raise e
 
     mem_end = process.memory_info().rss / 1024 / 1024
     logger.info(f"Summary peak memory: start={mem_start:.2f}MB, end={mem_end:.2f}MB")

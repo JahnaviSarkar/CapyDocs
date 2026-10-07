@@ -58,7 +58,7 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
       {/* Capybara */}
       <motion.div
         className="absolute z-10 pointer-events-auto flex items-center justify-center bottom-0"
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, willChange: 'transform', transform: 'translateZ(0)' }}
         variants={capyVariants}
         initial="idle"
         animate={status}
@@ -84,7 +84,7 @@ export default function CapyMascot({ status = 'idle', className = '', size = 120
           <rect x="9" y="44" width="27" height="1" fill="#d98ba8" />
 
           {/* Bobbing Straw */}
-          <motion.g variants={strawVariants} initial="idle" animate={status}>
+          <motion.g variants={strawVariants} initial="idle" animate={status} style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
             <rect x="76" y="20" width="2" height="15" fill="#16a34a" />
           </motion.g>
 

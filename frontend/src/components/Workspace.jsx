@@ -75,11 +75,17 @@ export default function Workspace({ session, onBack }) {
     setMascotStatus('typing');
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const res = await fetch(`${import.meta.env.VITE_API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doc_id, question: userMsg, purpose })
+        body: JSON.stringify({ doc_id, question: userMsg, purpose }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       const data = await res.json();
       if (res.status === 410) {
@@ -116,11 +122,17 @@ export default function Workspace({ session, onBack }) {
     setMascotStatus('typing');
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const res = await fetch(`${import.meta.env.VITE_API_URL}/summary`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doc_id, purpose })
+        body: JSON.stringify({ doc_id, purpose }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       const data = await res.json();
       if (res.status === 410) {
